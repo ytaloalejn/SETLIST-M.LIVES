@@ -74,18 +74,32 @@ li.picked .box::after{content:"●"}
 .mi{text-align:left;padding:13px 14px}
 .fsr{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted)}
+.grid button{position:relative}
+.ord{font-style:normal;font-size:13px;font-weight:700;background:var(--on-accent);color:var(--accent);border-radius:999px;min-width:22px;height:22px;line-height:22px;text-align:center;display:inline-block}
+.grid .ord{position:absolute;top:3px;right:5px}
+.scn{font-size:22px;font-weight:700;text-align:left;max-width:62vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px;margin-top:10px}
+.pc .t{font-weight:700;font-size:calc(19px*var(--ft,1))}
+.pi{font-size:calc(16px*var(--fn,1))}.pi small{color:var(--muted)}
+.plist{display:grid;gap:6px;max-height:38vh;overflow:auto}
+.pick{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.pick.on{outline:2px solid var(--accent);outline-offset:-2px}
+.pick .ord{background:var(--accent);color:var(--on-accent)}
+#ipChips{display:none;margin-top:4px}
 </style>
 </head>
 <body>
 <main>
 <header>
-  <div class="top"><h1>Setlist</h1><span class="count" id="count"></span><button class="btn" id="menuBtn" aria-label="Menú">☰</button></div>
+  <div class="top"><h1><button class="scn" id="sceneBtn"></button></h1><span class="count" id="count"></span><button class="btn" id="menuBtn" aria-label="Menú">☰</button></div>
   <div class="bar"><i id="fill"></i></div>
   <input id="q" type="search" placeholder="Buscar canción" autocomplete="off">
 </header>
-<details><summary>Orden y filtros</summary><div class="ctl">
+<div class="seg" id="tabs" style="margin:4px 0 8px"></div>
+<details id="fil"><summary>Orden y filtros</summary><div class="ctl">
   <div class="seg" id="sorts"></div>
-  <div class="row2"><button class="btn" id="only">Sin tocar</button><button class="btn" id="pul">Por pulir</button><button class="btn" id="selBtn">Seleccionar</button></div>
+  <div class="row2"><button class="btn" id="only">Sin tocar</button><button class="btn" id="pul">Por pulir</button><button class="btn" id="selBtn">Seleccionar</button><button class="btn" id="ipBtn">Intérprete</button></div>
+  <div class="chips" id="ipChips"></div>
 </div></details>
 <div id="list"></div>
 </main>
@@ -99,8 +113,8 @@ li.picked .box::after{content:"●"}
 <div class="sheet" id="toneSheet"><div class="panel">
   <h2 id="toneTitle"></h2>
   <div class="seg" id="mode"><button data-m="0">Mayor</button><button data-m="1">menor (m)</button></div>
-  <div class="grid" id="toneGrid"></div>
-  <div class="row"><button class="btn" id="toneClear">Quitar tono</button><button class="btn" id="toneClose">Cerrar</button></div>
+  <p id="toneSeq"></p><div class="grid" id="toneGrid"></div>
+  <div class="row"><button class="btn" id="toneClear">Quitar todos</button><button class="btn pri" id="toneClose">Listo</button></div>
 </div></div>
 <div class="sheet" id="rhySheet"><div class="panel">
   <h2 id="rhyTitle"></h2><p>Puedes marcar varios ritmos.</p>
@@ -119,27 +133,66 @@ li.picked .box::after{content:"●"}
   <div class="row"><button class="btn" id="cNo">No</button><button class="btn pri" id="cYes"></button></div>
 </div></div>
 
+<div class="sheet" id="popSheet"><div class="panel">
+  <h2>Popurrí</h2>
+  <input id="popName" placeholder="Nombre del popurrí" autocomplete="off">
+  <input id="popQ" type="search" placeholder="Buscar canción" autocomplete="off">
+  <p>Toca las canciones en el orden del popurrí.</p>
+  <div class="plist" id="popList"></div>
+  <div class="row"><button class="btn" id="popCancel">Cancelar</button><button class="btn pri" id="popSave">Guardar</button></div>
+</div></div>
+<div class="sheet" id="scSheet"><div class="panel">
+  <h2>Conciertos</h2><div id="scList" style="display:grid;gap:8px"></div>
+  <input id="scName" placeholder="Nombre del concierto" autocomplete="off">
+  <div class="row"><button class="btn" id="scRen">Guardar nombre</button><button class="btn" id="scDel">Eliminar este</button></div>
+  <button class="btn pri" id="scNew">+ Nuevo concierto</button>
+</div></div>
+<div class="sheet" id="newSheet"><div class="panel">
+  <h2>Nuevo concierto</h2>
+  <input id="newName" placeholder="Nombre (ej. Boda 12 dic)" autocomplete="off">
+  <p>¿Quieres copiar los datos básicos de las canciones del concierto actual (nombres, tonos y ritmos)? Cada concierto queda independiente, y notas y canciones tocadas empiezan de cero.</p>
+  <div class="row"><button class="btn" id="newCancel">Cancelar</button><button class="btn" id="newNo">No, vacío</button><button class="btn pri" id="newYes">Sí, copiar</button></div>
+</div></div>
+<div class="sheet" id="ipSheet"><div class="panel">
+  <h2 id="ipTitle"></h2><div class="chips" id="ipSel"></div>
+  <input id="ipInput" placeholder="Nombre del intérprete" autocomplete="off">
+  <div class="row"><button class="btn" id="ipClear">Quitar</button><button class="btn pri" id="ipSave">Guardar</button></div>
+</div></div>
+
 <script>
-var KEY="setlist-directo-v2",S={songs:[],sort:"orden",only:false,pul:false,q:"",theme:"",fs:{t:1,b:1,n:1,h:1},wake:false},cur=null,tm=0,sel=null,yes=null,rl=[],wl=null;
+var KEY="setlist-directo-v2",S={sc:[],cs:0,tab:0,sort:"orden",only:false,pul:false,ipOn:false,ip:"",q:"",theme:"",fs:{t:1,b:1,n:1,h:1},wake:false},cur=null,tm=0,sel=null,yes=null,rl=[],wl=null,tmp=[],pcur=null;
 var NT=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+var RD=["RANCHERA","CORRIDO","BOLERO","HUAPANGO","SON","SON HUASTECO","CANCIÓN","JARABE","POLKA","VALSE","PASODOBLE","BALADA","JOROPO","MARCHA","CHACHACHA"];
 var SIZES=[.85,1,1.2,1.45],FSN=[["t","Títulos"],["b","Botones"],["n","Notas"],["h","Secciones"]];
 var SORTS=[["orden","Mi lista"],["az","A–Z"],["tono","Tono"],["ritmo","Ritmo"],["notas","Notas"]];
 var TAGS=["Afinación","Arreglos","Autocontrol","Carisma","Consciencia espacial","Coreografía","Dicción","Entrada","Final","Interpretación","Letra","Manejo de imprevistos","Matices","Postura","Sonido","Tempo","Transición"];
 function $(i){return document.getElementById(i)}
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 function norm(x){return x.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function kn(k){return NT[k.n]+(k.m?"m":"")}
 function hora(ts){var d=new Date(ts);return d.getHours()+":"+("0"+d.getMinutes()).slice(-2)}
-function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);for(var k in o)S[k]=o[k]}}catch(e){}S.q="";S.songs.forEach(function(s){if(!Array.isArray(s.r))s.r=[]})}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function newSong(t){return{id:uid(),t:t,played:false,note:"",at:null,k:[],r:[],p:false,ip:""}}
+function fixSong(s){if(!s.id)s.id=uid();if(!Array.isArray(s.k))s.k=s.k?[s.k]:[];s.ip=s.ip||"";
+  s.r=(Array.isArray(s.r)?s.r:[]).map(function(r){return RD.filter(function(x){return norm(x)===norm(r)})[0]||r})}
+function bind(){var c=S.sc[S.cs];S.songs=c.songs;S.pop=c.pop}
+function save(){try{var o={};for(var k in S)if(k!=="songs"&&k!=="pop")o[k]=S[k];localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function load(){
+  try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);for(var k in o)S[k]=o[k];
+    if(!o.sc&&o.songs)S.sc=[{id:uid(),name:"Concierto 1",songs:o.songs,pop:[]}]}}catch(e){}
+  if(!S.sc.length)S.sc=[{id:uid(),name:"Concierto 1",songs:[],pop:[]}];
+  if(S.cs>=S.sc.length)S.cs=0;
+  S.sc.forEach(function(c){c.pop=c.pop||[];c.songs.forEach(fixSong)});S.q="";bind()}
+function byId(id){return S.songs.filter(function(s){return s.id===id})[0]}
 function groups(){
   var a=S.songs.map(function(s,i){return{s:s,i:i}}),q=norm(S.q.trim());
   if(q)a=a.filter(function(x){return norm(x.s.t).indexOf(q)>-1});
   if(S.only)a=a.filter(function(x){return!x.s.played});
   if(S.pul)a=a.filter(function(x){return x.s.p});
+  if(S.ipOn&&S.ip)a=a.filter(function(x){return S.ip==="@sin"?!x.s.ip:x.s.ip===S.ip});
   var m=S.sort;if(m==="orden")return[{h:"",items:a}];
   var f={az:function(x){return[[x.s.t.charAt(0).toUpperCase(),0]]},
-   tono:function(x){return x.s.k?[[kn(x.s.k),x.s.k.n*2+(x.s.k.m?1:0)]]:[["Sin tono",99]]},
+   tono:function(x){return x.s.k.length?x.s.k.map(function(k){return[kn(k),k.n*2+(k.m?1:0)]}):[["Sin tono",99]]},
    ritmo:function(x){return x.s.r.length?x.s.r.map(function(r){return[r,0]}):[["Sin ritmo",1]]},
    notas:function(x){return x.s.note?[["Con notas",0]]:[["Sin notas",1]]}}[m];
   var mp={},g=[];
@@ -159,29 +212,51 @@ function row(x){
     if(sel){if(sel[i])delete sel[i];else sel[i]=1;render();return}
     ask(s.t,s.played?"¿Quieres quitarla de las canciones ya tocadas?":"¿Quieres añadirla a las canciones ya tocadas?","Sí",function(){s.played=!s.played;s.at=s.played?Date.now():null;save();render()})};
   var ac=el("div","acts");
-  var k=el("button",s.k?"set":"",s.k?"Tono "+kn(s.k):"Tono");k.onclick=function(){openTone(i)};
+  var k=el("button",s.k.length?"set":"",s.k.length?"Tono "+s.k.map(kn).join("›"):"Tono");k.onclick=function(){openTone(i)};
   var r=el("button",s.r.length?"set":"",s.r.length?s.r.join(" + "):"Ritmo");r.onclick=function(){openRhy(i)};
   var n=el("button","nb","✎ Nota");n.onclick=function(){openNote(i)};
   var p=el("button","fl"+(s.p?" on":""),"⚑");p.setAttribute("aria-label","Por pulir");p.onclick=function(){s.p=!s.p;save();render()};
   ac.appendChild(k);ac.appendChild(r);ac.appendChild(n);ac.appendChild(p);
-  li.appendChild(m);li.appendChild(ac);return li;
+  li.appendChild(m);li.appendChild(ac);
+  if(S.ipOn){var a2=el("div","acts"),q=el("button",s.ip?"set":"",s.ip?"Intérprete: "+s.ip:"Intérprete");q.onclick=function(){openIp(i)};a2.appendChild(q);li.appendChild(a2)}
+  return li;
+}
+function renderPop(l){
+  var b=el("button","btn pri","+ Crear nuevo popurrí");b.onclick=function(){openPop(null)};l.appendChild(b);
+  if(!S.pop.length)l.appendChild(el("div","empty","Aún no hay popurrís en este concierto."));
+  S.pop.forEach(function(p,pi){
+    var c=el("div","pc");c.appendChild(el("div","t",p.name));
+    p.s.forEach(function(id,j){var s=byId(id);if(s){var d=el("div","pi",(j+1)+". "+s.t);if(s.k.length)d.appendChild(el("small","","  ·  "+s.k.map(kn).join(" › ")));c.appendChild(d)}});
+    var r=el("div","row2"),e=el("button","btn","Editar"),x=el("button","btn","Eliminar");
+    e.onclick=function(){openPop(pi)};
+    x.onclick=function(){ask("Eliminar popurrí","¿Quieres eliminar «"+p.name+"»? Las canciones no se borran.","Eliminar",function(){S.pop.splice(pi,1);save();render()})};
+    r.appendChild(e);r.appendChild(x);c.appendChild(r);l.appendChild(c)});
 }
 function render(){
   var l=$("list");l.innerHTML="";
-  if(!S.songs.length)l.appendChild(el("div","empty","Aún no hay canciones. Abre el menú ☰ y pulsa «Editar canciones» para pegar tu lista, una por línea."));
-  groups().forEach(function(g){
-    if(g.h)l.appendChild(el("h3","",g.h+" ("+g.items.length+")"));
-    var u=el("ul");g.items.forEach(function(x){u.appendChild(row(x))});l.appendChild(u)});
-  var sb=$("sorts");sb.innerHTML="";
-  SORTS.forEach(function(p){var b=el("button",S.sort===p[0]?"on":"",p[1]);b.onclick=function(){S.sort=p[0];save();render()};sb.appendChild(b)});
-  $("only").className="btn"+(S.only?" on":"");$("pul").className="btn"+(S.pul?" on":"");$("selBtn").className="btn"+(sel?" on":"");
-  var d=S.songs.filter(function(s){return s.played}).length,t=S.songs.length;
-  $("count").textContent=t?d+"/"+t+" tocadas":"";$("fill").style.width=t?(100*d/t)+"%":"0";
-  $("selbar").className="selbar"+(sel?" on":"");if(sel)$("selDel").textContent="Eliminar notas ("+Object.keys(sel).length+")";
+  $("sceneBtn").textContent=S.sc[S.cs].name+" ▾";
+  var t=$("tabs");t.innerHTML="";
+  ["Canciones","Popurrís ("+S.pop.length+")"].forEach(function(x,j){var b=el("button",S.tab===j?"on":"",x);b.onclick=function(){S.tab=j;sel=null;save();render()};t.appendChild(b)});
+  var sg=S.tab===0;$("q").style.display=sg?"":"none";$("fil").style.display=sg?"":"none";
+  if(sg){
+    if(!S.songs.length)l.appendChild(el("div","empty","Aún no hay canciones. Abre el menú ☰ y pulsa «Editar canciones» para pegar tu lista, una por línea."));
+    groups().forEach(function(g){
+      if(g.h)l.appendChild(el("h3","",g.h+" ("+g.items.length+")"));
+      var u=el("ul");g.items.forEach(function(x){u.appendChild(row(x))});l.appendChild(u)});
+    var sb=$("sorts");sb.innerHTML="";
+    SORTS.forEach(function(p){var b=el("button",S.sort===p[0]?"on":"",p[1]);b.onclick=function(){S.sort=p[0];save();render()};sb.appendChild(b)});
+    $("only").className="btn"+(S.only?" on":"");$("pul").className="btn"+(S.pul?" on":"");$("selBtn").className="btn"+(sel?" on":"");$("ipBtn").className="btn"+(S.ipOn?" on":"");
+    var ic=$("ipChips");ic.innerHTML="";ic.style.display=S.ipOn?"flex":"none";
+    if(S.ipOn){var ips=[];S.songs.forEach(function(s){if(s.ip&&ips.indexOf(s.ip)<0)ips.push(s.ip)});ips.sort(function(a,b){return a.localeCompare(b,"es")});
+      [["","Todos"]].concat(ips.map(function(x){return[x,x]})).concat([["@sin","Sin intérprete"]]).forEach(function(p){var b=el("button","chip"+(S.ip===p[0]?" on":""),p[1]);b.onclick=function(){S.ip=p[0];save();render()};ic.appendChild(b)})}
+  }else renderPop(l);
+  var d=S.songs.filter(function(s){return s.played}).length,n=S.songs.length;
+  $("count").textContent=n?d+"/"+n+" tocadas":"";$("fill").style.width=n?(100*d/n)+"%":"0";
+  $("selbar").className="selbar"+(sel&&sg?" on":"");if(sel)$("selDel").textContent="Eliminar notas ("+Object.keys(sel).length+")";
 }
 function show(id){$(id).classList.add("on")}
 function hide(id){$(id).classList.remove("on");cur=null;render()}
-["noteSheet","toneSheet","rhySheet","editSheet","menuSheet","confSheet"].forEach(function(id){$(id).onclick=function(e){if(e.target===this)hide(id)}});
+["noteSheet","toneSheet","rhySheet","editSheet","menuSheet","confSheet","popSheet","scSheet","newSheet","ipSheet"].forEach(function(id){$(id).onclick=function(e){if(e.target===this)hide(id)}});
 function ask(t,msg,yl,fn){$("cTitle").textContent=t;$("cMsg").textContent=msg;$("cYes").textContent=yl;yes=fn;show("confSheet")}
 $("cYes").onclick=function(){var f=yes;yes=null;hide("confSheet");if(f)f()};
 $("cNo").onclick=function(){yes=null;hide("confSheet")};
@@ -189,6 +264,7 @@ $("cNo").onclick=function(){yes=null;hide("confSheet")};
 $("q").oninput=function(){S.q=this.value;render()};
 $("only").onclick=function(){S.only=!S.only;save();render()};
 $("pul").onclick=function(){S.pul=!S.pul;save();render()};
+$("ipBtn").onclick=function(){S.ipOn=!S.ipOn;if(!S.ipOn)S.ip="";save();render()};
 /* seleccionar */
 $("selBtn").onclick=function(){sel=sel?null:{};render()};
 $("selEnd").onclick=function(){sel=null;render()};
@@ -200,19 +276,23 @@ $("note").oninput=function(){if(cur!==null){S.songs[cur].note=this.value;save()}
 $("noteDone").onclick=function(){hide("noteSheet")};
 $("noteClear").onclick=function(){$("note").value="";if(cur!==null){S.songs[cur].note="";save()}};
 TAGS.forEach(function(g){var b=el("button","chip",g);b.onclick=function(){var t=$("note");t.value=(t.value?t.value+"\n":"")+g+": ";t.focus();if(cur!==null){S.songs[cur].note=t.value;save()}};$("chips").appendChild(b)});
-/* tono */
+/* tonos en orden */
 function drawTone(){
-  var s=S.songs[cur];$("toneGrid").innerHTML="";
+  var s=S.songs[cur],g=$("toneGrid");g.innerHTML="";
   [].forEach.call($("mode").children,function(b){b.className=(+b.dataset.m===tm)?"on":""});
-  NT.forEach(function(nm,n){var b=el("button",s.k&&s.k.n===n?"on":"",nm+(tm?"m":""));b.onclick=function(){s.k={n:n,m:!!tm};save();hide("toneSheet")};$("toneGrid").appendChild(b)});
+  $("toneSeq").textContent=s.k.length?"Orden: "+s.k.map(kn).join(" › "):"Toca los tonos en el orden en que suenan en la canción.";
+  NT.forEach(function(nm,n){
+    var idx=-1;s.k.forEach(function(k,j){if(k.n===n&&!!k.m===!!tm)idx=j});
+    var b=el("button",idx>-1?"on":"",nm+(tm?"m":""));if(idx>-1)b.appendChild(el("i","ord",idx+1));
+    b.onclick=function(){if(idx>-1)s.k.splice(idx,1);else s.k.push({n:n,m:!!tm});save();drawTone()};g.appendChild(b)});
 }
-function openTone(i){cur=i;var s=S.songs[i];tm=s.k&&s.k.m?1:0;$("toneTitle").textContent="Tono de "+s.t;drawTone();show("toneSheet")}
-[].forEach.call($("mode").children,function(b){b.onclick=function(){tm=+b.dataset.m;var s=S.songs[cur];if(s.k){s.k.m=!!tm;save()}drawTone()}});
-$("toneClear").onclick=function(){S.songs[cur].k=null;save();hide("toneSheet")};
+function openTone(i){cur=i;var s=S.songs[i];tm=s.k.length&&s.k[s.k.length-1].m?1:0;$("toneTitle").textContent="Tonos de "+s.t;drawTone();show("toneSheet")}
+[].forEach.call($("mode").children,function(b){b.onclick=function(){tm=+b.dataset.m;drawTone()}});
+$("toneClear").onclick=function(){S.songs[cur].k=[];save();drawTone()};
 $("toneClose").onclick=function(){hide("toneSheet")};
-/* ritmos (varios por canción) */
-function openRhy(i){cur=i;$("rhyTitle").textContent="Ritmos de "+S.songs[i].t;rl=[];
-  S.songs.forEach(function(o){o.r.forEach(function(r){if(rl.indexOf(r)<0)rl.push(r)})});rl.sort(function(a,b){return a.localeCompare(b,"es")});
+/* ritmos */
+function openRhy(i){cur=i;$("rhyTitle").textContent="Ritmos de "+S.songs[i].t;rl=RD.slice();
+  S.songs.forEach(function(o){o.r.forEach(function(r){if(rl.indexOf(r)<0)rl.push(r)})});
   $("rhyInput").value="";drawRhy();show("rhySheet")}
 function drawRhy(){var s=S.songs[cur],c=$("rhyChips");c.innerHTML="";
   rl.forEach(function(r){var on=s.r.indexOf(r)>-1,b=el("button","chip"+(on?" on":""),(on?"✓ ":"")+r);
@@ -222,13 +302,50 @@ function addRhy(){var v=$("rhyInput").value.trim();if(!v)return;
   var s=S.songs[cur];if(s.r.indexOf(f)<0)s.r.push(f);$("rhyInput").value="";save();drawRhy()}
 $("rhyAdd").onclick=addRhy;$("rhyInput").onkeydown=function(e){if(e.key==="Enter")addRhy()};
 $("rhyDone").onclick=function(){hide("rhySheet")};
+/* intérprete (solo visible con el filtro activo) */
+function openIp(i){cur=i;var s=S.songs[i],c=$("ipSel");$("ipTitle").textContent="Intérprete de "+s.t;c.innerHTML="";
+  var ips=[];S.songs.forEach(function(o){if(o.ip&&ips.indexOf(o.ip)<0)ips.push(o.ip)});ips.sort(function(a,b){return a.localeCompare(b,"es")});
+  ips.forEach(function(x){var b=el("button","chip"+(s.ip===x?" on":""),x);b.onclick=function(){s.ip=x;save();hide("ipSheet")};c.appendChild(b)});
+  $("ipInput").value=s.ip||"";show("ipSheet")}
+$("ipSave").onclick=function(){S.songs[cur].ip=$("ipInput").value.trim();save();hide("ipSheet")};
+$("ipClear").onclick=function(){S.songs[cur].ip="";save();hide("ipSheet")};
+/* popurrís */
+function drawPop(){
+  var q=norm($("popQ").value.trim()),b=$("popList");b.innerHTML="";
+  S.songs.forEach(function(s){
+    if(q&&norm(s.t).indexOf(q)<0)return;
+    var j=tmp.indexOf(s.id),r=el("button","pick"+(j>-1?" on":""));r.appendChild(el("span","",s.t));if(j>-1)r.appendChild(el("i","ord",j+1));
+    r.onclick=function(){if(j>-1)tmp.splice(j,1);else tmp.push(s.id);drawPop()};b.appendChild(r)});
+  if(!b.children.length)b.appendChild(el("p","","Sin resultados."));
+}
+function openPop(pi){pcur=pi;var p=pi===null?null:S.pop[pi];tmp=p?p.s.slice():[];$("popName").value=p?p.name:"";$("popQ").value="";drawPop();show("popSheet")}
+$("popQ").oninput=drawPop;
+$("popCancel").onclick=function(){hide("popSheet")};
+$("popSave").onclick=function(){
+  var nm=$("popName").value.trim()||"Popurrí "+(S.pop.length+1);
+  if(pcur===null)S.pop.push({id:uid(),name:nm,s:tmp.slice()});else{S.pop[pcur].name=nm;S.pop[pcur].s=tmp.slice()}
+  save();hide("popSheet")};
+/* conciertos (escenas) */
+function openSc(){var l=$("scList");l.innerHTML="";
+  S.sc.forEach(function(c,i){var b=el("button","btn mi"+(i===S.cs?" on":""),c.name+" ("+c.songs.length+")");b.onclick=function(){S.cs=i;bind();sel=null;save();hide("scSheet")};l.appendChild(b)});
+  $("scName").value=S.sc[S.cs].name;show("scSheet")}
+$("sceneBtn").onclick=openSc;
+$("scRen").onclick=function(){var v=$("scName").value.trim();if(v){S.sc[S.cs].name=v;save();openSc()}};
+$("scNew").onclick=function(){$("newName").value="";show("newSheet")};
+$("scDel").onclick=function(){if(S.sc.length<2)return;hide("scSheet");
+  ask("Eliminar concierto","Se eliminará «"+S.sc[S.cs].name+"» con sus canciones, notas y popurrís. Los demás conciertos no se tocan.","Eliminar",function(){S.sc.splice(S.cs,1);S.cs=0;bind();save();render()})};
+function newScene(share){
+  var nm=$("newName").value.trim()||"Concierto "+(S.sc.length+1),songs=[];
+  if(share)songs=S.songs.map(function(s){var n=newSong(s.t);n.k=s.k.map(function(k){return{n:k.n,m:k.m}});n.r=s.r.slice();return n});
+  S.sc.push({id:uid(),name:nm,songs:songs,pop:[]});S.cs=S.sc.length-1;bind();sel=null;S.tab=0;save();hide("newSheet");hide("scSheet")}
+$("newYes").onclick=function(){newScene(true)};$("newNo").onclick=function(){newScene(false)};$("newCancel").onclick=function(){hide("newSheet")};
 /* lista de canciones */
 function openEdit(){$("editText").value=S.songs.map(function(s){return s.t}).join("\n");show("editSheet")}
 $("editCancel").onclick=function(){hide("editSheet")};
 $("editSave").onclick=function(){
   var old={};S.songs.forEach(function(s){old[s.t]=s});
-  S.songs=$("editText").value.split("\n").map(function(x){return x.trim()}).filter(Boolean).map(function(t){return old[t]||{t:t,played:false,note:"",at:null,k:null,r:[],p:false}});
-  save();hide("editSheet")};
+  S.sc[S.cs].songs=$("editText").value.split("\n").map(function(x){return x.trim()}).filter(Boolean).map(function(t){return old[t]||newSong(t)});
+  bind();save();hide("editSheet")};
 /* tema, letra, pantalla */
 function eff(){var a=document.documentElement.getAttribute("data-theme");return a||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}
 function applyFs(){var r=document.documentElement.style;FSN.forEach(function(p){r.setProperty("--f"+p[0],S.fs[p[0]])})}
@@ -246,8 +363,8 @@ function openMenu(){
   function item(l,f){var x=el("button","btn mi",l);x.onclick=f;b.appendChild(x)}
   item("Editar canciones",function(){hide("menuSheet");openEdit()});
   item("Copiar notas",function(){copyNotes(this)});
-  item("Borrar todas las notas",function(){hide("menuSheet");ask("Borrar todas las notas","Se eliminarán las notas de todas las canciones. ¿Quieres continuar?","Borrar",function(){S.songs.forEach(function(s){s.note=""});save();render()})});
-  item("Reiniciar directo",function(){hide("menuSheet");ask("Reiniciar directo","Todas las canciones volverán a «sin tocar». Las notas se conservan.","Reiniciar",function(){S.songs.forEach(function(s){s.played=false;s.at=null});save();render()})});
+  item("Borrar todas las notas",function(){hide("menuSheet");ask("Borrar todas las notas","Se eliminarán las notas de todas las canciones de este concierto. ¿Quieres continuar?","Borrar",function(){S.songs.forEach(function(s){s.note=""});save();render()})});
+  item("Reiniciar directo",function(){hide("menuSheet");ask("Reiniciar directo","Todas las canciones de este concierto volverán a «sin tocar». Las notas se conservan.","Reiniciar",function(){S.songs.forEach(function(s){s.played=false;s.at=null});save();render()})});
   item("Tema: "+(eff()==="dark"?"oscuro":"claro")+" (cambiar)",function(){var n=eff()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);S.theme=n;save();openMenu()});
   item("Pantalla encendida: "+(S.wake?"sí":"no"),function(){S.wake=!S.wake;save();wake(S.wake);openMenu()});
   b.appendChild(el("h3","","Tamaño de letra"));

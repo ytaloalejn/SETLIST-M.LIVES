@@ -113,6 +113,20 @@ li.picked .box::after{content:"●"}
 li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .selbar{flex-wrap:wrap}
 #ctxSheet,#renSheet,#coinSheet{z-index:25}
+.top2{display:flex}.top2 .main{flex:1;min-width:0}
+.vb{flex:0 0 52px;display:grid;place-items:center;border-left:1px solid var(--line)}
+.vb.vo{color:var(--cy)}.vb.va{color:var(--mg)}
+.sw{display:inline-block;width:26px;height:14px;border:2px solid currentColor;border-radius:9px;position:relative}
+.sw::after{content:"";position:absolute;top:1px;left:1px;width:10px;height:10px;border-radius:50%;background:currentColor}
+.vb.va .sw::after{left:13px}
+li.vfo{border-left:4px solid var(--cy)}li.vfa{border-left:4px solid var(--mg)}
+.acts .vs{font-weight:700}.acts .vs.vo{color:var(--cy)}.acts .vs.va{color:var(--mg)}
+.acts .vs.on.vo{background:var(--cy);color:#001418}.acts .vs.on.va{background:var(--mg);color:#1c0020}
+html.locked,html.locked body{overscroll-behavior:none}
+.cmbrow{display:grid;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px}
+:root{--cy:#0891b2;--mg:#c026d3}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--cy:#22d3ee;--mg:#e879f9}}
+:root[data-theme="dark"]{--cy:#22d3ee;--mg:#e879f9}
 </style>
 </head>
 <body>
@@ -125,7 +139,6 @@ li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
 <div class="seg" id="tabs" style="margin:4px 0 8px"></div>
 <details id="fil"><summary id="filSum">Filtros</summary><div class="ctl">
   <div class="row2" id="ftog"></div>
-  <div class="menu" id="mtag"><div class="chips" id="tagChips"></div></div>
   <div class="menu" id="mip"><input id="ipq" type="search" placeholder="Buscar canciones por intérprete" autocomplete="off"><div id="ipChips"></div></div>
   <div class="menu" id="mritmo"><div class="chips" id="ritmoChips"></div></div>
   <div class="menu" id="mtono"><div class="seg" id="tmodeSeg"></div><div class="chips" id="tonoChips"></div></div>
@@ -152,7 +165,7 @@ li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
   <div class="row"><button class="btn" id="rhyAdd">Añadir ritmo</button><button class="btn pri" id="rhyDone">Listo</button></div>
 </div></div>
 <div class="sheet" id="editSheet"><div class="panel">
-  <h2>Canciones de la escena</h2>
+  <h2>Repertorio</h2>
   <input id="songIn" placeholder="Añadir canción" autocomplete="off">
   <div class="row"><button class="btn" id="songMore">Añadir varias…</button><button class="btn pri" id="songAdd">Añadir</button></div>
   <textarea id="editText" placeholder="Una canción por línea" style="display:none"></textarea>
@@ -184,20 +197,15 @@ li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
   <div class="row"><button class="btn" id="doneAll">Todas</button><button class="btn" id="doneCancel">Cancelar</button><button class="btn pri" id="doneSave">Guardar</button></div>
 </div></div>
 <div class="sheet" id="scSheet"><div class="panel">
-  <h2>Escenas</h2><div id="scList" style="display:grid;gap:8px"></div>
-  <input id="scName" placeholder="Nombre de la escena" autocomplete="off">
-  <div class="row"><button class="btn" id="scRen">Guardar nombre</button><button class="btn" id="scDel">Eliminar este</button></div>
+  <h2>Escenas</h2><p>Toca una escena para abrirla, cambiarle el nombre, exportarla o borrarla.</p><div id="scList" style="display:grid;gap:8px"></div>
   <button class="btn pri" id="scNew">+ Nueva escena</button>
 </div></div>
 <div class="sheet" id="newSheet"><div class="panel">
   <h2>Nueva escena</h2>
   <input id="newName" placeholder="Nombre (ej. Boda 12 dic)" autocomplete="off">
-  <p>¿Quieres copiar los datos básicos de las canciones de la escena actual (nombre, tono, ritmo, intérpretes y etiquetas)? Cada escena queda independiente y lo tocado empieza de cero.</p>
-  <div class="row"><button class="btn" id="newCancel">Cancelar</button><button class="btn" id="newNo">No, vacío</button><button class="btn pri" id="newYes">Sí, copiar</button></div>
-</div></div>
-<div class="sheet" id="newSheet2"><div class="panel">
-  <h2>¿Qué más quieres copiar?</h2><div class="chips" id="exChips"></div>
-  <div class="row"><button class="btn" id="newBack">Cancelar</button><button class="btn pri" id="newGo">Crear escena</button></div>
+  <p>¿Quieres copiar los datos de las canciones de la escena actual? Cada escena queda independiente y lo tocado empieza de cero.</p>
+  <div class="row"><button class="btn" id="newCancel">Cancelar</button><button class="btn" id="newNo">No, vacía</button></div>
+  <div class="row"><button class="btn" id="newCust">Personalizado</button><button class="btn pri" id="newAll">Todos los datos</button></div>
 </div></div>
 <div class="sheet" id="ipSheet"><div class="panel">
   <h2 id="ipTitle"></h2>
@@ -209,12 +217,12 @@ li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
 <div class="sheet" id="expSheet"><div class="panel">
   <h2>Exportar copia de seguridad</h2>
   <div class="seg" id="expSeg"><button data-t="all">Todo</button><button data-t="scene">Solo esta escena</button></div>
-  <p id="expInfo"></p>
+  <div class="chips" id="expCats"></div><p id="expInfo"></p>
   <div class="row"><button class="btn" id="expDl">Descargar archivo</button><button class="btn pri" id="expSh">Compartir</button></div>
 </div></div>
 <div class="sheet" id="impSheet"><div class="panel">
   <h2>Importar copia de seguridad</h2><p id="impMsg"></p>
-  <div class="row"><button class="btn" id="impCancel">Cancelar</button><button class="btn" id="impAdd">Añadir</button><button class="btn pri" id="impOver">Sobrescribir</button></div>
+  <div style="display:grid;gap:8px"><button class="btn" id="impAdd">Añadir como escenas nuevas</button><button class="btn" id="impOver">Sobrescribir todo</button><button class="btn" id="impCust">Nueva escena personalizada desde archivo</button><button class="btn" id="impMerge">Combinar con la escena actual</button><button class="btn" id="impCancel">Cancelar</button></div>
 </div></div>
 <div class="sheet" id="loadSheet"><div class="panel">
   <h2>Cargar guardado</h2><div id="loadList" style="display:grid;gap:8px"></div>
@@ -227,12 +235,16 @@ li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
 <div class="sheet" id="pkSheet"><div class="panel"><h2 id="pkTitle"></h2><input id="pkQ" type="search" placeholder="Buscar canción, ritmo, intérprete…" autocomplete="off">
   <div class="plist" id="pkList"></div><p id="pkCount"></p>
   <div class="row"><button class="btn" id="pkCancel">Cancelar</button><button class="btn" id="pkAll">Todas</button><button class="btn pri" id="pkOk">Continuar</button></div></div></div>
-<div class="sheet" id="newSheet1"><div class="panel"><h2>¿Qué datos quieres importar?</h2><p>«Todos los datos» copia todas las canciones de la escena actual. «Personalizado» te deja elegir cuáles.</p>
-  <div class="row"><button class="btn" id="new1Back">Cancelar</button><button class="btn" id="newCust">Personalizado</button><button class="btn pri" id="newAll">Todos los datos</button></div></div></div>
-<div class="sheet" id="ipmSheet"><div class="panel"><h2>Gestionar intérpretes</h2><p>Mantén pulsado un intérprete para modificar su nombre o borrarlo.</p>
+<div class="sheet" id="ipmSheet"><div class="panel"><h2>Gestionar intérpretes</h2><p>Toca un intérprete para modificar su nombre o borrarlo.</p>
   <input id="ipmQ" type="search" placeholder="Buscar intérprete" autocomplete="off"><div class="chips" id="ipmList"></div>
   <input id="ipmIn" placeholder="Añadir nuevo intérprete" autocomplete="off">
   <div class="row"><button class="btn" id="ipmAdd">Añadir</button><button class="btn pri" id="ipmDone">Listo</button></div></div></div>
+<div class="sheet" id="catSheet"><div class="panel"><h2 id="catTitle"></h2><p>Toca para marcar ✓ lo que quieres incluir y ✗ lo que no.</p><div class="chips" id="catChips"></div>
+  <div class="row"><button class="btn" id="catCancel">Cancelar</button><button class="btn pri" id="catOk"></button></div></div></div>
+<div class="sheet" id="mgSheet"><div class="panel"><h2 id="mgTitle"></h2><p id="mgNames"></p><div class="plist" id="mgDiff"></div>
+  <div style="display:grid;gap:8px"><button class="btn" id="mgRep">Reemplazar la información por la nueva</button><button class="btn" id="mgCmb">Combinar</button><button class="btn" id="mgNew">Añadir como canción nueva</button><button class="btn" id="mgSkip">Omitir esta canción</button></div></div></div>
+<div class="sheet" id="cmbSheet"><div class="panel"><h2 id="cmbTitle"></h2><p>Elige qué datos conservar: los Actuales o los del Archivo.</p><div class="plist" id="cmbList" style="max-height:48vh"></div>
+  <div class="row"><button class="btn" id="cmbBack">Volver</button><button class="btn pri" id="cmbOk">Aplicar elección</button></div></div></div>
 <div class="busy" id="busy"><img src="icon-192.png" alt="" width="96" height="96"><h2>YF LiveList</h2><div class="spin"></div><p>Creando copia de seguridad…</p></div>
 <div class="lock" id="lock"><button class="btn pri" id="unlockBtn">🔒 Pantalla bloqueada · desbloquear</button></div>
 <div class="sheet top" id="unSheet"><div class="panel"><h2>Desbloquear pantalla</h2><p>¿Quieres desbloquear la pantalla y volver a poder tocar la app?</p><div class="row"><button class="btn" id="unNo">No</button><button class="btn pri" id="unYes">Sí, desbloquear</button></div></div></div>
@@ -240,7 +252,7 @@ li .main,.chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:n
 <input type="file" id="impFile" accept=".json,.txt,application/json,text/plain" hidden>
 <script>
 var KEY="setlist-directo-v2",SK="yf-livelist-saves";
-var S={sc:[],cs:0,tab:0,f:{sin:0,pul:0,notas:0,tono:[],ritmo:[],ip:[],tags:[]},tmode:"a",open:{tono:0,ritmo:0,ip:0,tag:0},theme:"",fs:{t:1,b:1,n:1,h:1},wake:false,ipx:[]};
+var S={sc:[],cs:0,tab:0,f:{sin:0,pul:0,notas:0,chica:0,tono:[],ritmo:[],ip:[],tags:[]},tmode:"a",open:{tono:0,ritmo:0,ip:0,tag:0},theme:"",fs:{t:1,b:1,n:1,h:1},wake:false,ipx:[]};
 var Q="",cur=null,tm=0,sel=null,yes=null,rl=[],wl=null,tmp=[],tmp2=[],pcur=null,ipq="",ipaq="",NO={c:0,s:0},GO={m:1,s:1},bt="all",imp=null,ex={p:0,u:0,n:0},nname="",VC={};
 const NT=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
 const RD=["RANCHERA","CORRIDO","BOLERO","HUAPANGO","SON","SON HUASTECO","CANCIÓN","JARABE","POLKA","VALSE","PASODOBLE","BALADA","JOROPO","MARCHA","CHACHACHA"];
@@ -248,7 +260,7 @@ const IPD=["M. VARGAS","M. NUEVO TECALITLAN","JORGE NEGRETE","JAVIER SOLIS","PED
 const SIZES=[.85,1,1.2,1.45],FSN=[["t","Títulos"],["b","Botones"],["n","Notas"],["h","Secciones"]];
 const TAGS=["Afinación","Arreglos","Autocontrol","Carisma","Consciencia espacial","Coreografía","Dicción","Entrada","Final","Interpretación","Letra","Manejo de imprevistos","Matices","Postura","Sonido","Tempo","Transición"];
 const CO=new Intl.Collator("es",{sensitivity:"base"});
-const VER="3.0";
+const VER="4.0";
 function $(i){return document.getElementById(i)}
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 function norm(x){return x.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
@@ -257,10 +269,13 @@ function kn(k){return NT[k.n]+(k.m?"m":"")}
 function kj(s){return s.k.map(kn).join("-")}
 function tl(s){return s.k.length===1?"Tono "+kn(s.k[0]):s.k.length?kj(s):"Tono"}
 function hora(ts){var d=new Date(ts);return d.getHours()+":"+("0"+d.getMinutes()).slice(-2)}
-function newSong(t){return{id:uid(),t:t,played:false,note:"",at:null,k:[],r:[],ip:[],ch:false,eu:false,p:false}}
+function newSong(t){return{id:uid(),t:t,played:false,note:"",at:null,k:[],r:[],ip:[],ch:false,eu:false,p:false,ver:"o",alt:null}}
 function fixSong(s){if(!s.id)s.id=uid();if(!Array.isArray(s.k))s.k=s.k?[s.k]:[];
   s.ip=Array.isArray(s.ip)?s.ip:(s.ip?[s.ip]:[]);s.ch=!!s.ch;s.eu=!!s.eu;s.note=s.note||"";
-  s.r=(Array.isArray(s.r)?s.r:[]).map(r=>RD.filter(x=>norm(x)===norm(r))[0]||r)}
+  s.r=(Array.isArray(s.r)?s.r:[]).map(nr);s.ver=s.ver==="a"?"a":"o";
+  if(s.alt&&typeof s.alt==="object"){var a=s.alt;a.k=Array.isArray(a.k)?a.k:[];a.ip=Array.isArray(a.ip)?a.ip:[];a.r=(Array.isArray(a.r)?a.r:[]).map(nr);a.note=a.note||"";a.p=!!a.p}
+  else s.alt=s.ver==="a"?{k:[],r:[],ip:[],note:"",p:false}:null}
+function nr(r){return RD.filter(x=>norm(x)===norm(r))[0]||r}
 function fixSc(c){c.pop=c.pop||[];c.songs=c.songs||[];c.songs.forEach(fixSong);c.pop.forEach(p=>{p.done=!!p.done;p.td=Array.isArray(p.td)?p.td:[]})}
 function bind(){var c=S.sc[S.cs];S.songs=c.songs;S.pop=c.pop}
 function save(){try{var o={};for(var k in S)if(k!=="songs"&&k!=="pop")o[k]=S[k];localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
@@ -286,7 +301,7 @@ function ok(s,sk){var f=S.f;
   if(sk!=="ritmo"&&f.ritmo.length&&!s.r.some(r=>f.ritmo.includes(r)))return 0;
   if(sk!=="ip"&&f.ip.length&&!(s.ip.length?s.ip.some(x=>f.ip.includes(x)):f.ip.includes("@sin")))return 0;
   if(sk!=="ip"&&ipq.trim()&&!s.ip.some(x=>norm(x).includes(norm(ipq.trim()))))return 0;
-  if(sk!=="tags"&&f.tags.length&&!f.tags.some(g=>g==="ch"?s.ch:s.eu))return 0;
+  if(f.chica&&s.ver!=="a")return 0;
   return 1}
 function vis(sk){sk=sk||"";if(VC[sk])return VC[sk];var q=norm(Q.trim());
   return VC[sk]=S.songs.map((s,i)=>({s:s,i:i})).filter(x=>ok(x.s,sk)&&pm(x.s,q)).sort((a,b)=>CO.compare(a.s.t,b.s.t))}
@@ -295,26 +310,33 @@ function tog(a,v){var i=a.indexOf(v);if(i>-1)a.splice(i,1);else a.push(v);save()
 function chip(l,on,fn,n){var b=el("button","chip"+(on?" on":"")+(n===0&&!on?" dim":""),l+(n!=null?" ("+n+")":""));b.onclick=fn;return b}
 /* filas */
 function row(x){
-  var s=x.s,i=x.i,li=el("li",(s.played?"done ":"")+(s.note?"hasnote ":"")+(sel&&sel[i]?"picked":""));
-  var m=el("button","main");m.appendChild(el("span","box"));
+  var s=x.s,i=x.i,li=el("li",(s.played?"done ":"")+(s.note?"hasnote ":"")+(sel&&sel[i]?"picked ":"")+(s.ver==="a"?"vfa":"vfo"));
+  var top=el("div","top2"),m=el("button","main");m.appendChild(el("span","box"));
   var w=el("span");w.appendChild(el("div","t",s.t));
   var sub=[];if(s.played&&s.at)sub.push("tocada "+hora(s.at));if(s.note)sub.push(s.note.replace(/\n/g," · "));
   if(sub.length)w.appendChild(el("div","sub",sub.join(" – ")));
   m.appendChild(w);
-  lp(m,()=>{if(sel)return;ctxMenu(s.t,[["Eliminar canción",()=>delSongs([s.id])],["Notas de esa canción",()=>openNote(i)],["Seleccionar varios",()=>{sel={};sel[i]=1;render()}]])});
+  lp(m,()=>{if(sel)return;ctxMenu(s.t,[["Eliminar canción",()=>delSongs([s.id])],["Borrar notas",()=>ctxMenu("Borrar notas",[["De CHICO",()=>askNotes(s,"o")],["De CHICA",()=>askNotes(s,"a")],["De ambos",()=>askNotes(s,"b")]])],["Seleccionar varios",()=>{sel={};sel[i]=1;render()}]])});
   m.onclick=()=>{
     if(sel){if(sel[i])delete sel[i];else sel[i]=1;render();return}
     ask(s.t,s.played?"¿Quieres quitarla de las canciones ya tocadas?":"¿Quieres añadirla a las canciones ya tocadas?","Sí",()=>{s.played=!s.played;s.at=s.played?Date.now():null;save();render()})};
+  var vb=el("button","vb "+(s.ver==="a"?"va":"vo"));vb.innerHTML='<i class="sw"></i>';vb.setAttribute("aria-label","Mostrar otra información");
+  vb.onclick=()=>{VM[s.id]=!VM[s.id];render()};
+  top.appendChild(m);top.appendChild(vb);li.appendChild(top);
   var ac=el("div","acts");
-  var k=el("button",s.k.length?"set":"",tl(s));k.onclick=()=>openTone(i);
-  var r=el("button",s.r.length?"set":"",s.r.length?s.r.join(" + "):"Ritmo");r.onclick=()=>openRhy(i);
-  var n=el("button","nb","✎ Nota");n.onclick=()=>openNote(i);
+  if(VM[s.id]){
+    var c1=el("button","vs vo"+(s.ver==="o"?" on":""),"CHICO"),c2=el("button","vs va"+(s.ver==="a"?" on":""),"CHICA");
+    c1.onclick=()=>{swapVer(s,"o");save();render()};c2.onclick=()=>{swapVer(s,"a");save();render()};
+    ac.appendChild(c1);ac.appendChild(c2);
+  }else{
+    var k=el("button",s.k.length?"set":"",tl(s));k.onclick=()=>openTone(i);
+    var r=el("button",s.r.length?"set":"",s.r.length?s.r.join(" + "):"Ritmo");r.onclick=()=>openRhy(i);
+    var n=el("button","nb","✎ Nota");n.onclick=()=>openNote(i);
+    ac.appendChild(k);ac.appendChild(r);ac.appendChild(n)}
   var p=el("button","fl"+(s.p?" on":""),"⚑");p.setAttribute("aria-label","Por pulir");
   p.onclick=()=>ask(s.t,s.p?"¿Quieres quitar la marca «por pulir» de esta canción?":"¿Quieres marcar esta canción como «por pulir»?","Sí",()=>{s.p=!s.p;save();render()});
-  ac.appendChild(k);ac.appendChild(r);ac.appendChild(n);ac.appendChild(p);
-  li.appendChild(m);li.appendChild(ac);
+  ac.appendChild(p);li.appendChild(ac);
   if(S.open.ip){var a2=el("div","acts"),q=el("button",s.ip.length?"set":"",s.ip.length?s.ip.join(", "):"Intérprete");q.onclick=()=>openIp(i);a2.appendChild(q);li.appendChild(a2)}
-  if(S.open.tag){var a3=el("div","acts");[["ch","CHICAS"],["eu","EUSKERA"]].forEach(g=>{var b=el("button",s[g[0]]?"set":"",(s[g[0]]?"✓ ":"")+g[1]);b.onclick=()=>{s[g[0]]=!s[g[0]];save();render()};a3.appendChild(b)});li.appendChild(a3)}
   return li}
 /* popurrís */
 function pm(s,q){if(!q)return 1;var b=norm([s.t,s.r.join(" "),s.k.map(kn).join(" "),s.ip.join(" "),s.ch?"chicas":"",s.eu?"euskera":""].join(" "));
@@ -362,11 +384,11 @@ $("doneCancel").onclick=()=>hide("doneSheet");
 $("doneSave").onclick=()=>{var p=S.pop[pcur];tmp.forEach(id=>{var s=byId(id);if(s&&!s.played){s.played=true;s.at=Date.now()}});p.done=true;p.td=tmp.slice();save();hide("doneSheet")};
 /* render */
 function menus(){
-  ["tono","ritmo","ip","tag"].forEach(k=>{$("m"+k).className="menu"+(S.open[k]?" on":"")});
+  ["tono","ritmo","ip"].forEach(k=>{$("m"+k).className="menu"+(S.open[k]?" on":"")});
   if(S.open.tono){var sg=$("tmodeSeg");sg.innerHTML="";
     [["a","Ambos"],[0,"Mayor"],[1,"menor"]].forEach(p=>{var b=el("button",S.tmode===p[0]?"on":"",p[1]);b.onclick=()=>{S.tmode=p[0];save();render()};sg.appendChild(b)});
     var c=$("tonoChips");c.innerHTML="";NT.forEach((nm,n)=>c.appendChild(chip(nm,S.f.tono.includes(n),()=>tog(S.f.tono,n),cnt("tono",s=>s.k.some(k=>k.n===n&&(S.tmode==="a"||(k.m?1:0)===S.tmode))))))}
-  if(S.open.ritmo){var rs=RD.slice();S.songs.forEach(s=>s.r.forEach(r=>{if(!rs.includes(r))rs.push(r)}));
+  if(S.open.ritmo){var rs=RD.slice();S.songs.forEach(s=>s.r.forEach(r=>{if(!rs.includes(r))rs.push(r)}));rs.sort((a,b)=>CO.compare(a,b));
     var c2=$("ritmoChips");c2.innerHTML="";rs.forEach(r=>c2.appendChild(chip(r,S.f.ritmo.includes(r),()=>tog(S.f.ritmo,r),cnt("ritmo",s=>s.r.includes(r)))))}
   if(S.open.ip){var box=$("ipChips"),qq=norm(ipq.trim()),all=allIps().sort(ipSort);box.innerHTML="";
     [["m","Mariachis",all.filter(x=>/^M\. /.test(x))],["s","Solistas",all.filter(x=>!/^M\. /.test(x))]].forEach(p=>{
@@ -375,23 +397,19 @@ function menus(){
       var c=el("div","chips");list.forEach(x=>c.appendChild(chip(x,S.f.ip.includes(x),()=>tog(S.f.ip,x),cnt("ip",s=>s.ip.includes(x)))));
       d.appendChild(c);d.ontoggle=()=>{if(!qq)GO[p[0]]=d.open?1:0};box.appendChild(d)});
     var c3=el("div","chips");c3.appendChild(chip("Sin intérprete",S.f.ip.includes("@sin"),()=>tog(S.f.ip,"@sin"),cnt("ip",s=>!s.ip.length)));box.appendChild(c3)}
-  if(S.open.tag){var c4=$("tagChips");c4.innerHTML="";
-    c4.appendChild(chip("CHICAS",S.f.tags.includes("ch"),()=>tog(S.f.tags,"ch"),cnt("tags",s=>s.ch)));
-    c4.appendChild(chip("EUSKERA",S.f.tags.includes("eu"),()=>tog(S.f.tags,"eu"),cnt("tags",s=>s.eu)))}
 }
 function fbtns(){
   var c=$("ftog"),F=S.f,o=S.open,ipn=F.ip.length+(ipq.trim()?1:0);c.innerHTML="";
   var lab=(t,n,k)=>t+(n?" ("+n+")":"")+(o[k]?" ▴":"");
   [["Sin tocar",F.sin,()=>{F.sin=F.sin?0:1}],
-   [lab("Etiquetas",F.tags.length,"tag"),F.tags.length,()=>{o.tag=o.tag?0:1}],
+   ["Chica",F.chica,()=>{F.chica=F.chica?0:1}],
    [lab("Intérprete",ipn,"ip"),ipn,()=>{o.ip=o.ip?0:1}],
    ["Notas",F.notas,()=>{F.notas=F.notas?0:1}],
    ["Por pulir",F.pul,()=>{F.pul=F.pul?0:1}],
    [lab("Ritmo",F.ritmo.length,"ritmo"),F.ritmo.length,()=>{o.ritmo=o.ritmo?0:1}],
-   ["Seleccionar",!!sel,()=>{sel=sel?null:{}}],
    [lab("Tono",F.tono.length,"tono"),F.tono.length,()=>{o.tono=o.tono?0:1}]].forEach(p=>{var b=el("button","btn"+(p[1]?" on":""),p[0]);b.onclick=()=>{p[2]();save();render()};c.appendChild(b)});
-  if(F.sin||F.pul||F.tono.length||F.ritmo.length||ipn||F.tags.length){var x=el("button","btn","Limpiar");
-    x.onclick=()=>{F.sin=F.pul=0;F.tono=[];F.ritmo=[];F.ip=[];F.tags=[];ipq="";$("ipq").value="";save();render()};c.appendChild(x)}}
+  if(F.sin||F.pul||F.chica||F.tono.length||F.ritmo.length||ipn){var x=el("button","btn","Limpiar");
+    x.onclick=()=>{clearF();save();render()};c.appendChild(x)}}
 function render(){
   VC={};var l=$("list");l.innerHTML="";
   $("sceneBtn").textContent=S.sc[S.cs].name+" ▾";
@@ -401,14 +419,14 @@ function render(){
   var sg=S.tab===0;$("q").style.display=sg?"":"none";$("fil").style.display=sg?"":"none";
   if(sg){
     var v=vis(""),F=S.f;
-    if(!S.songs.length)l.appendChild(el("div","empty","Aún no hay canciones. Abre el menú ☰ y pulsa «Editar canciones» para añadir tus canciones."));
+    if(!S.songs.length)l.appendChild(el("div","empty","Aún no hay canciones. Abre el menú ☰ y pulsa «Repertorio» para añadir tus canciones."));
     else if(!v.length)l.appendChild(el("div","empty","Ninguna canción coincide con los filtros."));
     if(F.notas){[["c","Con notas",v.filter(x=>x.s.note)],["s","Sin notas",v.filter(x=>!x.s.note)]].forEach(p=>{
       var d=el("details","ng");d.open=!!NO[p[0]];d.appendChild(el("summary","",p[1]+" ("+p[2].length+")"));
       var u=el("ul");p[2].forEach(x=>u.appendChild(row(x)));d.appendChild(u);d.ontoggle=()=>{NO[p[0]]=d.open?1:0};l.appendChild(d)})}
     else{var u2=el("ul");v.forEach(x=>u2.appendChild(row(x)));l.appendChild(u2)}
     fbtns();menus();
-    var act=Q.trim()||ipq.trim()||F.sin||F.pul||F.tono.length||F.ritmo.length||F.ip.length||F.tags.length;
+    var act=Q.trim()||ipq.trim()||F.sin||F.pul||F.chica||F.tono.length||F.ritmo.length||F.ip.length;
     $("filSum").textContent="Filtros"+(act?" · "+v.length+" de "+S.songs.length:"");
   }else renderPop(l);
   var d=S.songs.filter(s=>s.played).length,n=S.songs.length;
@@ -421,16 +439,17 @@ function flush(){if(bk){var n=bk;bk=0;skip++;try{history.go(-n)}catch(x){skip--}
 function hide(id){var e=$(id),was=e.classList.contains("on");e.classList.remove("on");cur=null;
   if(was){var i=OS.lastIndexOf(id);if(i>-1)OS.splice(i,1);bk++;clearTimeout(bt2);bt2=setTimeout(flush,0)}render()}
 addEventListener("popstate",()=>{if(skip>0){skip--;return}var id=OS.pop();if(!id)return;$(id).classList.remove("on");cur=null;
-  if(id==="confSheet")yes=null;if(id==="coinSheet")coinCb=null;render()});
-["noteSheet","toneSheet","rhySheet","editSheet","menuSheet","confSheet","popSheet","scSheet","newSheet","newSheet2","ipSheet","repSheet","doneSheet","expSheet","impSheet","loadSheet","ctxSheet","renSheet","coinSheet","pkSheet","newSheet1","ipmSheet"].forEach(id=>{$(id).onclick=function(e){if(e.target===this)hide(id)}});
-function ask(t,msg,yl,fn){$("cTitle").textContent=t;$("cMsg").textContent=msg;$("cYes").textContent=yl;yes=fn;show("confSheet")}
-$("cYes").onclick=()=>{var f=yes;yes=null;hide("confSheet");if(f)f()};
-$("cNo").onclick=()=>{yes=null;hide("confSheet")};
+  if(id==="confSheet"){yes=null;var nf=nocb;nocb=null;if(nf)nf()}if(id==="coinSheet")coinCb=null;if(id==="mgSheet"||id==="cmbSheet")askStop(id);render()});
+["noteSheet","toneSheet","rhySheet","editSheet","menuSheet","confSheet","popSheet","scSheet","newSheet","catSheet","ipSheet","repSheet","doneSheet","expSheet","impSheet","loadSheet","ctxSheet","renSheet","coinSheet","pkSheet","ipmSheet"].forEach(id=>{$(id).onclick=function(e){if(e.target===this)hide(id)}});
+var nocb=null;
+function ask(t,msg,yl,fn,no){$("cTitle").textContent=t;$("cMsg").textContent=msg;$("cYes").textContent=yl;yes=fn;nocb=no||null;show("confSheet")}
+$("cYes").onclick=()=>{var f=yes;yes=null;nocb=null;hide("confSheet");if(f)f()};
+$("cNo").onclick=()=>{yes=null;var nf=nocb;nocb=null;hide("confSheet");if(nf)nf()};
 $("q").oninput=function(){Q=this.value;render()};
 $("ipq").oninput=function(){ipq=this.value;render()};
 $("selEnd").onclick=()=>{sel=null;render()};
 $("selAll").onclick=()=>{sel={};vis("").forEach(x=>{sel[x.i]=1});render()};
-$("selDel").onclick=()=>{Object.keys(sel).forEach(i=>{S.songs[i].note=""});save();sel=null;render()};
+$("selDel").onclick=()=>{Object.keys(sel).forEach(i=>{var s=S.songs[i];s.note="";if(s.alt)s.alt.note=""});save();sel=null;render()};
 /* notas */
 function openNote(i){cur=i;var s=S.songs[i];$("noteTitle").textContent=s.t;$("note").value=s.note||"";show("noteSheet")}
 $("note").oninput=function(){if(cur!==null){S.songs[cur].note=this.value;save()}};
@@ -451,11 +470,11 @@ $("toneClear").onclick=()=>{S.songs[cur].k=[];save();drawTone()};
 $("toneClose").onclick=()=>hide("toneSheet");
 /* ritmos */
 function openRhy(i){cur=i;$("rhyTitle").textContent="Ritmos de "+S.songs[i].t;rl=RD.slice();
-  S.songs.forEach(o=>o.r.forEach(r=>{if(!rl.includes(r))rl.push(r)}));$("rhyInput").value="";drawRhy();show("rhySheet")}
+  S.songs.forEach(o=>o.r.forEach(r=>{if(!rl.includes(r))rl.push(r)}));rl.sort((a,b)=>CO.compare(a,b));$("rhyInput").value="";drawRhy();show("rhySheet")}
 function drawRhy(){var s=S.songs[cur],c=$("rhyChips");c.innerHTML="";
   rl.forEach(r=>{var on=s.r.includes(r),b=el("button","chip"+(on?" on":""),(on?"✓ ":"")+r);b.onclick=()=>{if(on)s.r.splice(s.r.indexOf(r),1);else s.r.push(r);save();drawRhy()};c.appendChild(b)})}
 function addRhy(){var v=$("rhyInput").value.trim();if(!v)return;
-  var f=rl.filter(r=>norm(r)===norm(v))[0]||v;if(!rl.includes(f))rl.push(f);
+  var f=rl.filter(r=>norm(r)===norm(v))[0]||v;if(!rl.includes(f)){rl.push(f);rl.sort((a,b)=>CO.compare(a,b))}
   var s=S.songs[cur];if(!s.r.includes(f))s.r.push(f);$("rhyInput").value="";save();drawRhy()}
 $("rhyAdd").onclick=addRhy;$("rhyInput").onkeydown=e=>{if(e.key==="Enter")addRhy()};
 $("rhyDone").onclick=()=>hide("rhySheet");
@@ -469,27 +488,50 @@ function addIp(){var v=$("ipInput").value.trim();if(!v)return;var f=allIps().fil
   if(!S.ips.some(y=>norm(y)===norm(f)))S.ips.push(f);var s=S.songs[cur];if(!s.ip.includes(f))s.ip.push(f);$("ipInput").value="";save();drawIp()}
 $("ipAdd").onclick=addIp;$("ipInput").onkeydown=e=>{if(e.key==="Enter")addIp()};
 $("ipDone").onclick=()=>hide("ipSheet");
-/* conciertos */
+/* escenas */
+function clearF(){var f=S.f;f.sin=f.pul=f.notas=f.chica=0;f.tono=[];f.ritmo=[];f.ip=[];Q="";$("q").value="";ipq="";$("ipq").value=""}
 function openSc(){var l=$("scList");l.innerHTML="";
-  S.sc.forEach((c,i)=>{var b=el("button","btn mi"+(i===S.cs?" on":""),c.name+" ("+c.songs.length+")");b.onclick=()=>{S.cs=i;bind();sel=null;save();hide("scSheet")};l.appendChild(b)});
-  $("scName").value=S.sc[S.cs].name;show("scSheet")}
+  S.sc.forEach((c,i)=>{var b=el("button","btn mi"+(i===S.cs?" on":""),c.name+" ("+c.songs.length+")");
+    b.onclick=()=>ctxMenu(c.name,[["Abrir escena",()=>{S.cs=i;bind();sel=null;S.tab=0;clearF();save();hide("scSheet")}],
+      ["Cambiar nombre",()=>openRen(c.name,n=>{c.name=n;save();render();openSc()})],
+      ["Exportar escena",()=>{hide("scSheet");openExp("scene",i)}],["Borrar escena",()=>delScene(i)]]);l.appendChild(b)});
+  show("scSheet")}
 $("sceneBtn").onclick=openSc;
-$("scRen").onclick=()=>{var v=$("scName").value.trim();if(v){S.sc[S.cs].name=v;save();openSc()}};
-$("scNew").onclick=()=>{$("newName").value="";show("newSheet")};
-$("scDel").onclick=()=>{hide("scSheet");var last=S.sc.length<2;
-  ask("Eliminar escena","Se eliminará «"+S.sc[S.cs].name+"» con sus canciones, notas y popurrís."+(last?" Es la única escena, así que se creará una nueva vacía.":" Los demás no se tocan.")+" Antes se guarda una copia automática.","Eliminar",()=>{doSave("Antes de eliminar escena");S.sc.splice(S.cs,1);if(!S.sc.length)S.sc.push({id:uid(),name:"Escena 1",songs:[],pop:[]});S.cs=0;bind();sel=null;S.tab=0;save();render()})};
-function drawEx(){var c=$("exChips");c.innerHTML="";[["p","Popurrís"],["u","Por pulir"],["n","Notas"]].forEach(p=>{var b=el("button","chip"+(ex[p[0]]?" on":""),(ex[p[0]]?"✓ ":"")+p[1]);b.onclick=()=>{ex[p[0]]=ex[p[0]]?0:1;drawEx()};c.appendChild(b)})}
+function delScene(i){var last=S.sc.length<2,c=S.sc[i];
+  ask("Borrar escena","Se eliminará «"+c.name+"» con sus canciones, notas y popurrís."+(last?" Es la única escena, así que se creará una nueva vacía.":" Las demás no se tocan.")+" Antes se guarda una copia automática.","Borrar",()=>{
+    doSave("Antes de borrar escena");S.sc.splice(i,1);if(!S.sc.length)S.sc.push({id:uid(),name:"Escena 1",songs:[],pop:[]});
+    if(i<S.cs)S.cs--;S.cs=Math.max(0,Math.min(S.cs,S.sc.length-1));bind();sel=null;S.tab=0;save();render();if($("scSheet").classList.contains("on"))openSc()})}
+/* versiones CHICO / CHICA */
+const VF=["k","r","ip","note","p"];var VM={};
+function vo(s,v){return s.ver===v?s:s.alt}
+function swapVer(s,to){if(s.ver===to)return;if(!s.alt)s.alt={k:[],r:s.r.slice(),ip:s.ip.slice(),note:"",p:false};
+  VF.forEach(f=>{var t=s[f];s[f]=s.alt[f];s.alt[f]=t});s.ver=to}
+function askNotes(s,w){var t=w==="o"?"CHICO":w==="a"?"CHICA":"CHICO y CHICA";
+  ask("Borrar notas","Se borrarán las notas de «"+s.t+"» ("+t+").","Borrar",()=>{["o","a"].forEach(v=>{if(w==="b"||w===v){var o=vo(s,v);if(o)o.note=""}});save();render()})}
+/* categorías de datos (exportar, importar, escena nueva) */
+const CATS=[["int","Intérpretes"],["ton","Tonos"],["rit","Ritmos"],["not","Notas"],["pul","Por pulir"],["pop","Popurrís"],["chi","Versión CHICA"],["toc","Tocadas"]];
+const NEWC=["int","ton","rit","not","pul","pop","chi"],ALLC=NEWC.concat(["toc"]);
+var ec={},csel={},ccb=null,bsc=0;
+function allOn(ids){var o={};ids.forEach(k=>{o[k]=1});return o}
+function catChips(box,ids,obj){box.innerHTML="";CATS.filter(p=>ids.includes(p[0])).forEach(p=>{var on=obj[p[0]],b=el("button","chip"+(on?" on":""),(on?"✓ ":"✗ ")+p[1]);b.onclick=()=>{obj[p[0]]=on?0:1;catChips(box,ids,obj)};box.appendChild(b)})}
+function catSheet(title,ids,ok,cb){csel=allOn(ids);ccb=cb;$("catTitle").textContent=title;$("catOk").textContent=ok;catChips($("catChips"),ids,csel);show("catSheet")}
+$("catOk").onclick=()=>{var f=ccb,c=Object.assign({},csel);hide("catSheet");if(f)f(c)};$("catCancel").onclick=()=>hide("catSheet");
+function pick(d,ct){return d?{k:ct.ton?d.k.map(x=>({n:x.n,m:x.m})):[],r:ct.rit?d.r.slice():[],ip:ct.int?d.ip.slice():[],note:ct.not?d.note:"",p:ct.pul?!!d.p:false}:null}
+function cut(s,ct,keepId){var o=newSong(s.t),c=pick(vo(s,"o"),ct),a=ct.chi?pick(vo(s,"a"),ct):null,ver=a&&s.ver==="a"?"a":"o";
+  Object.assign(o,ver==="a"?a:c);o.alt=ver==="a"?c:a;o.ver=ver;o.ch=s.ch;o.eu=s.eu;if(ct.toc){o.played=s.played;o.at=s.at}if(keepId)o.id=s.id;return o}
+function cutScene(c,ct,keepIds){var map={},songs=c.songs.map(s=>{var o=cut(s,ct,keepIds);map[s.id]=o.id;return o});
+  var pop=ct.pop?c.pop.map(p=>({id:keepIds?p.id:uid(),name:p.name,done:ct.toc?p.done:false,td:ct.toc?p.td.map(i=>map[i]).filter(Boolean):[],s:p.s.map(i=>map[i]).filter(Boolean)})):[];
+  return{id:keepIds?c.id:uid(),name:c.name,songs:songs,pop:pop}}
+/* escena nueva */
 var cust=null;
-function makeScene(sh){var nm=nname||"Escena "+(S.sc.length+1),songs=[],map={},pop=[],src=cust?S.songs.filter(s=>cust.includes(s.id)):S.songs;
-  if(sh){songs=src.map(s=>{var n=newSong(s.t);map[s.id]=n.id;n.k=s.k.map(k=>({n:k.n,m:k.m}));n.r=s.r.slice();n.ip=s.ip.slice();n.ch=s.ch;n.eu=s.eu;if(ex.u)n.p=s.p;if(ex.n)n.note=s.note;return n});
-    if(ex.p)pop=S.pop.map(p=>({id:uid(),name:p.name,done:false,td:[],s:p.s.map(i=>map[i]).filter(Boolean)})).filter(p=>!cust||p.s.length)}
-  cust=null;S.sc.push({id:uid(),name:nm,songs:songs,pop:pop});S.cs=S.sc.length-1;bind();sel=null;S.tab=0;save();hide("newSheet");hide("newSheet1");hide("newSheet2");hide("scSheet")}
-$("newYes").onclick=()=>{nname=$("newName").value.trim();cust=null;ex={p:0,u:0,n:0};hide("newSheet");show("newSheet1")};
-$("newAll").onclick=()=>{cust=null;drawEx();hide("newSheet1");show("newSheet2")};
-$("newCust").onclick=()=>{hide("newSheet1");picker("Elige las canciones de la nueva escena",S.songs,"Continuar",1,ids=>{cust=ids;drawEx();show("newSheet2")})};
-$("newNo").onclick=()=>{nname=$("newName").value.trim();cust=null;makeScene(false)};
-$("newCancel").onclick=()=>hide("newSheet");$("new1Back").onclick=()=>hide("newSheet1");
-$("newBack").onclick=()=>{cust=null;hide("newSheet2")};$("newGo").onclick=()=>makeScene(true);
+function newFrom(ids,ct){var nm=nname||"Escena "+(S.sc.length+1),map={},songs=S.songs.filter(s=>ids.includes(s.id)).map(s=>{var o=cut(s,ct,false);map[s.id]=o.id;return o});
+  var pop=ct.pop?S.pop.map(p=>({id:uid(),name:p.name,done:false,td:[],s:p.s.map(i=>map[i]).filter(Boolean)})).filter(p=>p.s.length||ids.length===S.songs.length):[];
+  S.sc.push({id:uid(),name:nm,songs:songs,pop:pop});S.cs=S.sc.length-1;bind();sel=null;S.tab=0;clearF();save();hide("scSheet")}
+$("scNew").onclick=()=>{$("newName").value="";show("newSheet")};
+$("newNo").onclick=()=>{nname=$("newName").value.trim();hide("newSheet");newFrom([],{})};
+$("newAll").onclick=()=>{nname=$("newName").value.trim();hide("newSheet");newFrom(S.songs.map(s=>s.id),allOn(NEWC))};
+$("newCust").onclick=()=>{nname=$("newName").value.trim();hide("newSheet");picker("Elige las canciones de la nueva escena",S.songs,"Continuar",1,ids=>catSheet("¿Qué datos quieres conservar?",NEWC,"Crear escena",ct=>newFrom(ids,ct)))};
+$("newCancel").onclick=()=>hide("newSheet");
 /* utilidades: pulsación larga, menú contextual, selector, coincidencias */
 function lp(e,fn){var t=null,x0=0,y0=0,fired=false;
   e.addEventListener("touchstart",ev=>{fired=false;var p=ev.touches[0];x0=p.clientX;y0=p.clientY;clearTimeout(t);t=setTimeout(()=>{fired=true;try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}fn()},500)},{passive:true});
@@ -554,7 +596,7 @@ $("editCancel").onclick=()=>hide("editSheet");
 function ipCount(x){var n=0;S.sc.forEach(c=>c.songs.forEach(s=>{if(s.ip.includes(x))n++}));return n}
 function drawIpm(){var q=norm($("ipmQ").value.trim()),c=$("ipmList");c.innerHTML="";
   S.ips.slice().sort(ipSort).filter(x=>!q||norm(x).includes(q)).forEach(x=>{var b=el("button","chip",x+" ("+ipCount(x)+")");
-    lp(b,()=>ctxMenu(x,[["Modificar nombre",()=>openRen(x,n=>renIp(x,n))],["Borrar",()=>delIp(x)]]));c.appendChild(b)})}
+    b.onclick=()=>ctxMenu(x,[["Modificar nombre",()=>openRen(x,n=>renIp(x,n))],["Borrar",()=>delIp(x)]]);c.appendChild(b)})}
 function doRen(o,n){S.sc.forEach(c=>c.songs.forEach(s=>{var i=s.ip.indexOf(o);if(i>-1){s.ip.splice(i,1);if(!s.ip.includes(n))s.ip.push(n)}}));
   S.f.ip=S.f.ip.map(x=>x===o?n:x).filter((x,i,a)=>a.indexOf(x)===i);S.ips=S.ips.filter(x=>x!==o);if(!S.ips.includes(n))S.ips.push(n);save();render();drawIpm()}
 function renIp(o,n){var ex2=S.ips.filter(x=>x!==o&&norm(x)===norm(n))[0];
@@ -571,20 +613,23 @@ function snap(){return JSON.stringify({sc:S.sc,cs:S.cs,fs:S.fs,ipx:S.ips})}
 function getSaves(){try{return JSON.parse(localStorage.getItem(SK))||[]}catch(e){return[]}}
 function doSave(label){var a=getSaves();a.unshift({at:Date.now(),label:label||"Guardado manual",d:snap()});try{localStorage.setItem(SK,JSON.stringify(a.slice(0,6)))}catch(e){}if(!label){S.lastSave=Date.now();save()}}
 function applyData(d){S.sc=d.sc&&d.sc.length?d.sc:[{id:uid(),name:"Escena 1",songs:[],pop:[]}];S.sc.forEach(fixSc);S.cs=Math.min(d.cs||0,S.sc.length-1);
-  if(d.fs)S.fs=d.fs;if(Array.isArray(d.ipx))S.ipx=d.ipx;bind();syncIps();sel=null;S.tab=0;applyFs();save();render()}
+  if(d.fs)S.fs=d.fs;if(Array.isArray(d.ipx))S.ipx=d.ipx;bind();syncIps();sel=null;S.tab=0;applyFs();clearF();save();render()}
 function addScenes(d){(d.ipx||[]).forEach(x=>{if(!S.ipx.includes(x))S.ipx.push(x)});
   d.sc.forEach(c=>{var n=c.name||"Escena";while(S.sc.some(x=>x.name===n))n+=" (importada)";c.name=n;c.id=uid();fixSc(c);S.sc.push(c)});
-  S.cs=S.sc.length-1;bind();syncIps();sel=null;S.tab=0;save();render()}
+  S.cs=S.sc.length-1;bind();syncIps();sel=null;S.tab=0;clearF();save();render()}
 function openLoad(){var l=$("loadList");l.innerHTML="";var a=getSaves();
   if(!a.length)l.appendChild(el("p","","Aún no hay guardados. Usa «Guardar ahora» en el menú."));
   a.forEach(e=>{var f=new Date(e.at).toLocaleString("es"),b=el("button","btn mi",f+" · "+e.label);
     b.onclick=()=>{hide("loadSheet");ask("Cargar guardado","Se reemplazarán tus datos actuales por el guardado del "+f+". Antes se guarda una copia automática de lo actual.","Cargar",()=>{doSave("Antes de cargar");applyData(JSON.parse(e.d))})};l.appendChild(b)});
   show("loadSheet")}
-function drawExp(){[].forEach.call($("expSeg").children,b=>{b.className=b.dataset.t===bt?"on":""});
-  $("expInfo").textContent=bt==="all"?"Incluye todas las escenas ("+S.sc.length+") con notas, popurrís y ajustes.":"Incluye solo la escena «"+S.sc[S.cs].name+"» con sus notas y popurrís."}
+/* exportar con categorías */
+function drawExp(){[].forEach.call($("expSeg").children,b=>{b.className=b.dataset.t===bt?"on":""});catChips($("expCats"),ALLC,ec);
+  $("expInfo").textContent=(bt==="all"?"Incluye todas las escenas ("+S.sc.length+")":"Incluye solo la escena «"+S.sc[bsc].name+"»")+". Solo se guardan las categorías con ✓."}
+function openExp(t,i){bt=t;bsc=i==null?S.cs:i;ec=allOn(ALLC);drawExp();show("expSheet")}
 [].forEach.call($("expSeg").children,b=>{b.onclick=()=>{bt=b.dataset.t;drawExp()}});
-function bkData(){var d=bt==="all"?{sc:S.sc,fs:S.fs,ipx:S.ips}:{sc:[S.sc[S.cs]],ipx:S.ips};return JSON.stringify({app:"YF LiveList",v:1,type:bt,at:Date.now(),data:d})}
-function bkName(ext){return"YF-LiveList-"+(bt==="all"?"todo":norm(S.sc[S.cs].name).replace(/[^a-z0-9]+/g,"-"))+"-"+new Date().toISOString().slice(0,10)+"."+ext}
+function bkData(){var scs=bt==="all"?S.sc:[S.sc[bsc]],d={sc:scs.map(c=>cutScene(c,ec,true)),fs:S.fs};if(ec.int)d.ipx=S.ips;
+  return JSON.stringify({app:"YF LiveList",v:2,type:bt,at:Date.now(),cats:Object.keys(ec).filter(k=>ec[k]),data:d})}
+function bkName(ext){return"YF-LiveList-"+(bt==="all"?"todo":norm(S.sc[bsc].name).replace(/[^a-z0-9]+/g,"-"))+"-"+new Date().toISOString().slice(0,10)+"."+ext}
 function dlFile(txt,nm,mime){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:mime}));a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
 $("expDl").onclick=()=>dlFile(bkData(),bkName("json"),"application/json");
 $("expSh").onclick=async()=>{
@@ -595,14 +640,55 @@ $("expSh").onclick=async()=>{
   try{if(f&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:nm});done=true}}catch(e){done=!!(e&&e.name==="AbortError")}
   $("busy").classList.remove("on");
   if(!done)ask("Copia descargada","El archivo ya está en tu carpeta de Descargas, pero el móvil no abrió el menú de compartir. Puedes enviarlo desde ahí.","Entendido",()=>{})};
+/* importar */
+var rv=null,cmbCur=null;
 $("impFile").onchange=function(){var f=this.files[0];this.value="";if(!f)return;var r=new FileReader();
-  r.onload=()=>{try{var o=JSON.parse(r.result);if(o.app!=="YF LiveList"||!o.data||!Array.isArray(o.data.sc)||!o.data.sc.length)throw 0;imp=o;
-    if(o.type==="scene")ask("Importar escena","Se añadirá como escena nueva: «"+o.data.sc[0].name+"».","Importar",()=>addScenes(o.data));
-    else{$("impMsg").textContent="Esta copia tiene "+o.data.sc.length+" escena(s). ¿Quieres sobrescribir todos tus datos o añadirlas a las que ya tienes?";show("impSheet")}}
+  r.onload=()=>{try{var o=JSON.parse(r.result);if(o.app!=="YF LiveList"||!o.data||!Array.isArray(o.data.sc)||!o.data.sc.length)throw 0;
+    o.data.sc.forEach(fixSc);o.ids=ALLC.filter(k=>!o.cats||o.cats.includes(k));imp=o;
+    $("impMsg").textContent="El archivo tiene "+o.data.sc.length+" escena(s). ¿Qué quieres hacer?";$("impOver").style.display=o.type==="all"?"":"none";show("impSheet")}
     catch(e){ask("Archivo no válido","Este archivo no parece una copia de YF LiveList.","Entendido",()=>{})}};r.readAsText(f)};
+function srcScene(cb){var l=imp.data.sc;if(l.length===1)cb(l[0]);else ctxMenu("¿De qué escena del archivo?",l.map(c=>[c.name+" ("+c.songs.length+")",()=>cb(c)]))}
 $("impCancel").onclick=()=>hide("impSheet");
-$("impAdd").onclick=()=>{hide("impSheet");addScenes(imp.data)};
-$("impOver").onclick=()=>{hide("impSheet");ask("Sobrescribir todos los datos","Se borrarán todas tus escenas actuales y se sustituirán por las del archivo. Antes se guarda una copia automática que podrás recuperar con «Cargar guardado».","Sobrescribir",()=>{doSave("Antes de importar");applyData(imp.data)})};
+$("impAdd").onclick=()=>{hide("impSheet");catSheet("¿Qué datos quieres importar?",imp.ids,"Importar",ct=>addScenes({sc:imp.data.sc.map(c=>cutScene(c,ct,false)),ipx:ct.int?imp.data.ipx:[]}))};
+$("impOver").onclick=()=>{hide("impSheet");catSheet("¿Qué datos quieres importar?",imp.ids,"Continuar",ct=>
+  ask("Sobrescribir todos los datos","Se borrarán todas tus escenas actuales y se sustituirán por las del archivo, solo con las categorías marcadas. Antes se guarda una copia automática que podrás recuperar con «Cargar guardado».","Sobrescribir",()=>{doSave("Antes de importar");applyData({sc:imp.data.sc.map(c=>cutScene(c,ct,true)),ipx:ct.int?imp.data.ipx:[]})}))};
+$("impCust").onclick=()=>{hide("impSheet");srcScene(c=>picker("Elige las canciones del archivo",c.songs,"Continuar",1,ids=>catSheet("¿Qué datos quieres importar?",imp.ids,"Crear escena",ct=>{
+  var sub={id:c.id,name:c.name,songs:c.songs.filter(x=>ids.includes(x.id)),pop:c.pop.map(p=>({id:p.id,name:p.name,done:p.done,td:p.td,s:p.s.filter(i=>ids.includes(i))})).filter(p=>p.s.length)};
+  addScenes({sc:[cutScene(sub,ct,false)],ipx:ct.int?imp.data.ipx:[]})})))};
+$("impMerge").onclick=()=>{hide("impSheet");srcScene(c=>catSheet("¿Qué datos quieres combinar?",imp.ids.filter(k=>k!=="pop"),"Continuar",ct=>startMerge(c,ct)))};
+const FL={ton:["k","Tonos",x=>x.map(kn).join("-")],rit:["r","Ritmos",x=>x.join(" + ")],int:["ip","Intérpretes",x=>x.join(", ")],not:["note","Notas",x=>x],pul:["p","Por pulir",x=>x?"Sí":"No"]};
+function diffs(s,f,ct){var out=[];["o","a"].forEach(v=>{if(v==="a"&&!ct.chi)return;var a=vo(s,v),b=vo(f,v);if(!b)return;a=a||{k:[],r:[],ip:[],note:"",p:false};
+  Object.keys(FL).forEach(c=>{if(!ct[c])return;var fl=FL[c][0],g=FL[c][2];if(JSON.stringify(a[fl])!==JSON.stringify(b[fl]))out.push({v:v,fl:fl,lab:(v==="a"?"CHICA · ":"")+FL[c][1],cur:g(a[fl])||"—",fil:g(b[fl])||"—"})})});return out}
+function setF(s,d,f){var to=vo(s,d.v);if(!to){s.alt={k:[],r:[],ip:[],note:"",p:false};to=s.alt}to[d.fl]=JSON.parse(JSON.stringify(vo(f,d.v)[d.fl]))}
+function startMerge(c,ct){var news=[],conf=[],same=0;
+  c.songs.forEach(x=>{var f=cut(x,ct,false),m=S.songs.map(s=>({s:s,sc:similar(s.t,f.t)})).filter(z=>z.sc).sort((a,b)=>b.sc-a.sc)[0];
+    if(!m)news.push(f);else{var df=diffs(m.s,f,ct);if(df.length||m.sc===1)conf.push({f:f,s:m.s,df:df,d:null});else same++}});
+  rv={news:news,conf:conf,same:same,ct:ct,i:0};nextConf()}
+function nextConf(){if(!rv)return;
+  if(rv.i>=rv.conf.length){var n={};rv.conf.forEach(c=>{n[c.d.a]=(n[c.d.a]||0)+1});
+    ask("Aplicar importación","Canciones nuevas: "+rv.news.length+" · Reemplazadas: "+(n.rep||0)+" · Combinadas: "+(n.cmb||0)+" · Añadidas como nuevas: "+(n.new||0)+" · Omitidas: "+(n.skip||0)+" · Sin cambios: "+rv.same+". Antes se guarda una copia automática.","Aplicar",applyMerge,()=>{rv=null});return}
+  var c=rv.conf[rv.i];$("mgTitle").textContent="Coincidencia "+(rv.i+1)+" de "+rv.conf.length;
+  $("mgNames").textContent="Actual: «"+c.s.t+"» · Archivo: «"+c.f.t+"»";
+  var b=$("mgDiff");b.innerHTML="";if(!c.df.length)b.appendChild(el("p","","Solo cambia el nombre."));
+  c.df.forEach(d=>b.appendChild(el("div","pi",d.lab+":  "+d.cur+"  →  "+d.fil)));show("mgSheet")}
+function decide(a){var c=rv.conf[rv.i];hide("mgSheet");
+  if(a==="cmb"){c.rows=c.df.slice();if(c.s.t!==c.f.t)c.rows.unshift({v:"n",lab:"Nombre",cur:c.s.t,fil:c.f.t});c.ch={};cmbCur=c;$("cmbTitle").textContent="Combinar: «"+c.s.t+"»";drawCmb();show("cmbSheet")}
+  else{c.d={a:a};rv.i++;nextConf()}}
+function drawCmb(){var b=$("cmbList"),c=cmbCur;b.innerHTML="";
+  c.rows.forEach((d,j)=>{var w=el("div","cmbrow");w.appendChild(el("div","",d.lab));var r=el("div","row2"),
+    ba=el("button","pick"+(c.ch[j]!=="f"?" on":""),"Actual: "+d.cur),bf=el("button","pick"+(c.ch[j]==="f"?" on":""),"Archivo: "+d.fil);
+    ba.onclick=()=>{c.ch[j]="a";drawCmb()};bf.onclick=()=>{c.ch[j]="f";drawCmb()};r.appendChild(ba);r.appendChild(bf);w.appendChild(r);b.appendChild(w)})}
+$("mgRep").onclick=()=>decide("rep");$("mgCmb").onclick=()=>decide("cmb");$("mgNew").onclick=()=>decide("new");$("mgSkip").onclick=()=>decide("skip");
+$("cmbBack").onclick=()=>{hide("cmbSheet");nextConf()};
+$("cmbOk").onclick=()=>{cmbCur.d={a:"cmb"};hide("cmbSheet");rv.i++;nextConf()};
+function askStop(id){if(!rv)return;ask("Cancelar importación","¿Quieres cancelar la importación? Se perderán las decisiones tomadas.","Sí, cancelar",()=>{rv=null},()=>show(id))}
+function applyMerge(){var r=rv;rv=null;if(!r)return;doSave("Antes de importar");
+  r.news.forEach(f=>S.songs.push(f));
+  r.conf.forEach(c=>{var a=c.d.a;
+    if(a==="new")S.songs.push(c.f);
+    else if(a==="rep"){c.df.forEach(d=>setF(c.s,d,c.f));if(r.ct.toc){c.s.played=c.f.played;c.s.at=c.f.at}}
+    else if(a==="cmb")c.rows.forEach((d,j)=>{if(c.ch[j]==="f"){if(d.v==="n")c.s.t=c.f.t;else setF(c.s,d,c.f)}})});
+  syncIps();save();render()}
 /* tema, letra, pantalla */
 function eff(){var a=document.documentElement.getAttribute("data-theme");return a||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}
 function applyFs(){var r=document.documentElement.style;FSN.forEach(p=>r.setProperty("--f"+p[0],S.fs[p[0]]))}
@@ -617,15 +703,15 @@ $("menuBtn").onclick=()=>openMenu();
 function openMenu(){
   var b=$("menuBody");b.innerHTML="";
   function item(l,f,box){var x=el("button","btn mi",l);x.onclick=f;(box||b).appendChild(x)}
-  item("Editar canciones",()=>{hide("menuSheet");openEdit()});
+  item("Repertorio",()=>{hide("menuSheet");openEdit()});
   item("Gestionar intérpretes",()=>{hide("menuSheet");$("ipmQ").value="";$("ipmIn").value="";drawIpm();show("ipmSheet")});
   item("Copiar notas",function(){copyNotes(this)});
-  item("Borrar todas las notas",()=>{hide("menuSheet");ask("Borrar todas las notas","Se eliminarán las notas de todas las canciones de esta escena. ¿Quieres continuar?","Borrar",()=>{doSave("Antes de borrar notas");S.songs.forEach(s=>{s.note=""});save();render()})});
+  item("Borrar todas las notas",()=>{hide("menuSheet");ask("Borrar todas las notas","Se eliminarán las notas de todas las canciones de esta escena, también las de la versión CHICA. ¿Quieres continuar?","Borrar",()=>{doSave("Antes de borrar notas");S.songs.forEach(s=>{s.note="";if(s.alt)s.alt.note=""});save();render()})});
   item("Reiniciar directo",()=>{hide("menuSheet");ask("Reiniciar directo","Todas las canciones y popurrís de esta escena volverán a «sin tocar». Las notas se conservan.","Reiniciar",()=>{doSave("Antes de reiniciar");S.songs.forEach(s=>{s.played=false;s.at=null});S.pop.forEach(p=>{p.done=false;p.td=[]});save();render()})});
   var d=el("details");d.appendChild(el("summary","","Datos: guardar y copias de seguridad"));var dg=el("div");dg.style.cssText="display:grid;gap:8px;margin-top:8px";
   item("Guardar ahora",function(){doSave();this.textContent="Guardado ✓"},dg);
   item("Cargar guardado",()=>{hide("menuSheet");openLoad()},dg);
-  item("Exportar copia de seguridad",()=>{hide("menuSheet");bt="all";drawExp();show("expSheet")},dg);
+  item("Exportar copia de seguridad",()=>{hide("menuSheet");openExp("all")},dg);
   item("Importar copia de seguridad",()=>{hide("menuSheet");$("impFile").click()},dg);
   dg.appendChild(el("p","","Último guardado: "+(S.lastSave?new Date(S.lastSave).toLocaleString("es"):"ninguno")));d.appendChild(dg);b.appendChild(d);
   item("Tema: "+(eff()==="dark"?"oscuro":"claro")+" (cambiar)",()=>{var n=eff()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);S.theme=n;save();openMenu()});
@@ -636,11 +722,14 @@ function openMenu(){
     r.appendChild(sg);b.appendChild(r)});
   b.appendChild(el("p","","YF LiveList · versión "+VER));
   show("menuSheet")}
-$("lockBtn").onclick=()=>$("lock").classList.add("on");
+function setLock(on){S.lock=on?1:0;save();$("lock").classList.toggle("on",!!on);document.documentElement.classList.toggle("locked",!!on)}
+$("lockBtn").onclick=()=>setLock(1);
 $("unlockBtn").onclick=()=>$("unSheet").classList.add("on");
 $("unNo").onclick=()=>$("unSheet").classList.remove("on");
-$("unYes").onclick=()=>{$("unSheet").classList.remove("on");$("lock").classList.remove("on")};
-load();if(S.theme)document.documentElement.setAttribute("data-theme",S.theme);applyFs();render();if(S.wake)wake(true);
+$("unYes").onclick=()=>{$("unSheet").classList.remove("on");setLock(0)};
+load();if(S.theme)document.documentElement.setAttribute("data-theme",S.theme);applyFs();render();if(S.wake)wake(true);if(S.lock)setLock(1);
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.tagName==="INPUT")e.target.blur()},true);
+document.querySelectorAll("input").forEach(i=>i.setAttribute("enterkeyhint",i.type==="search"?"search":"done"));
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if("serviceWorker" in navigator){var had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register("sw.js").catch(()=>{});
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(had)$("upd").classList.add("on")})}

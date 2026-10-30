@@ -130,6 +130,8 @@ html.locked,html.locked body{overscroll-behavior:none}
 .grp{display:flex;gap:8px}
 .sbox{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);display:none;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;background:var(--surface);border:1px solid var(--accent);z-index:130;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.35)}
 .sbox.on{display:flex}.sbox.done .spin{display:none}.sbox .spin{width:20px;height:20px;border-width:3px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:none;padding:14px 28px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.fab.on{display:block}.pick.dis{opacity:.55}
 </style>
 </head>
 <body>
@@ -249,17 +251,15 @@ html.locked,html.locked body{overscroll-behavior:none}
 <div class="sheet" id="mmSheet"><div class="panel"><h2>Combinar con la escena actual</h2><p>¿Quieres combinar todas las canciones del archivo o elegir cuáles?</p>
   <div style="display:grid;gap:8px"><button class="btn pri" id="mmAll">Todas las canciones</button><button class="btn" id="mmCust">Personalizado</button></div>
   <div class="row"><button class="btn" id="mmBack">Atrás</button><button class="btn" id="mmCancel">Cancelar</button></div></div></div>
-<div class="sheet" id="cmSheet"><div class="panel"><h2>Coincidencias de canciones</h2><p id="cmMsg"></p>
-  <div style="display:grid;gap:8px"><button class="btn" id="cm1">1. Reemplazarlas por las nuevas</button><button class="btn" id="cm2">2. Añadir de manera personalizada</button></div>
-  <div class="row"><button class="btn" id="cmBack">Atrás</button><button class="btn" id="cmCancel">Cancelar</button></div></div></div>
 <div class="sheet" id="lvSheet"><div class="panel"><h2>EN VIVO: elegir canciones</h2><input id="lvQ" type="search" placeholder="Buscar canción, ritmo, intérprete…" autocomplete="off">
   <p>Toca las canciones en el orden en que las vais a tocar.</p><div class="plist" id="lvList"></div>
   <div class="row"><button class="btn" id="lvCancel">Cancelar</button><button class="btn pri" id="lvSave">Guardar</button></div></div></div>
-<div class="sheet" id="lqSheet"><div class="panel"><h2>Añadir a EN VIVO</h2><input id="lqQ" type="search" placeholder="Buscar canción…" autocomplete="off">
-  <div class="seg" id="lqSeg"><button data-p="0">Como siguiente</button><button data-p="1">Al final</button></div><div class="plist" id="lqList"></div>
-  <button class="btn" id="lqClose">Cerrar</button></div></div>
-<div class="sheet" id="smSheet"><div class="panel"><h2>RESUMEN DE CONCIERTO</h2><pre id="smPre" style="margin:0;max-height:38vh;overflow:auto;white-space:pre-wrap;font:14px/1.4 system-ui;color:var(--muted)"></pre>
-  <div style="display:grid;gap:8px"><button class="btn pri" id="smCopy">Copiar al portapapeles</button><button class="btn" id="smDl">Descargar</button><button class="btn" id="smSh">Compartir</button><button class="btn" id="smClose">Cerrar</button></div></div></div>
+<div class="sheet" id="lqSheet"><div class="panel"><h2>Añadir canciones a EN VIVO</h2><input id="lqQ" type="search" placeholder="Buscar canción, ritmo, intérprete…" autocomplete="off">
+  <div class="seg" id="lqSeg"><button data-p="0">Como siguiente</button><button data-p="1">Al final</button></div><div class="plist" id="lqList" style="max-height:44vh"></div>
+  <div class="row"><button class="btn" id="lqClose">Cancelar</button><button class="btn pri" id="lqOk">Añadir (0)</button></div></div></div>
+<div class="sheet" id="smSheet"><div class="panel"><h2>RESUMEN DE CONCIERTO</h2><pre id="smPre" style="margin:0;max-height:34vh;overflow:auto;white-space:pre-wrap;font:14px/1.4 system-ui;color:var(--muted)"></pre>
+  <div style="display:grid;gap:8px"><button class="btn pri" id="smCopy">Copiar al portapapeles</button><button class="btn" id="smPdf">Descargar PDF</button><button class="btn" id="smSh">Compartir PDF</button><button class="btn" id="smTx">Descargar texto</button><button class="btn" id="smClose">Cerrar</button></div></div></div>
+<button class="fab" id="lvDone">Listo</button>
 <div class="sbox" id="sbox"><div class="spin"></div><span id="sbt"></span></div>
 <div class="busy" id="busy"><img src="icon-192.png" alt="" width="96" height="96"><h2>YF LiveList</h2><div class="spin"></div><p id="busyMsg">Creando copia de seguridad…</p></div>
 <div class="lock" id="lock"><button class="btn pri" id="unlockBtn">🔒 Pantalla bloqueada · desbloquear</button></div>
@@ -276,7 +276,7 @@ const IPD=["M. VARGAS","M. NUEVO TECALITLAN","JORGE NEGRETE","JAVIER SOLIS","PED
 const SIZES=[.85,1,1.2,1.45],FSN=[["t","Títulos"],["b","Botones"],["n","Notas"],["h","Secciones"]];
 const TAGS=["Afinación","Arreglos","Autocontrol","Carisma","Consciencia espacial","Coreografía","Dicción","Entrada","Final","Interpretación","Letra","Manejo de imprevistos","Matices","Postura","Sonido","Tempo","Transición"];
 const CO=new Intl.Collator("es",{sensitivity:"base"});
-const VER="5.0";
+const VER="6.0";
 function $(i){return document.getElementById(i)}
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 function norm(x){return x.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
@@ -430,6 +430,7 @@ function fbtns(){
 function render(){
   VC={};var l=$("list");l.innerHTML="";
   $("sceneBtn").textContent=S.sc[S.cs].name+" ▾";
+  $("lvDone").className="fab"+(S.tab===2&&LE?" on":"");
   $("menuBtn").className="btn"+(S.songs.length&&(!S.lastSave||Date.now()-S.lastSave>6048e5)?" dot":"");
   var t=$("tabs");t.innerHTML="";
   ["Canciones","Popurrís ("+S.pop.length+")","EN VIVO"].forEach((x,j)=>{var b=el("button",S.tab===j?"on":"",x);b.onclick=()=>{S.tab=j;sel=null;save();render()};t.appendChild(b)});
@@ -457,7 +458,7 @@ function hide(id){var e=$(id),was=e.classList.contains("on");e.classList.remove(
   if(was){var i=OS.lastIndexOf(id);if(i>-1)OS.splice(i,1);bk++;clearTimeout(bt2);bt2=setTimeout(flush,0)}render()}
 addEventListener("popstate",()=>{if(skip>0){skip--;return}var id=OS.pop();if(!id)return;$(id).classList.remove("on");cur=null;
   if(id==="confSheet"){yes=null;var nf=nocb;nocb=null;if(nf)nf()}if(id==="coinSheet")coinCb=null;if(W&&W.st.length&&W.st[W.st.length-1].id===id)W=null;render()});
-["noteSheet","toneSheet","rhySheet","editSheet","menuSheet","confSheet","popSheet","scSheet","newSheet","catSheet","ipSheet","repSheet","doneSheet","expSheet","impSheet","loadSheet","ctxSheet","renSheet","coinSheet","pkSheet","ipmSheet","mmSheet","cmSheet","lvSheet","lqSheet","smSheet"].forEach(id=>{$(id).onclick=function(e){if(e.target===this){if(W&&W.st.length&&W.st[W.st.length-1].id===id)W=null;hide(id)}}});
+["noteSheet","toneSheet","rhySheet","editSheet","menuSheet","confSheet","popSheet","scSheet","newSheet","catSheet","ipSheet","repSheet","doneSheet","expSheet","impSheet","loadSheet","ctxSheet","renSheet","coinSheet","pkSheet","ipmSheet","mmSheet","lvSheet","lqSheet","smSheet"].forEach(id=>{$(id).onclick=function(e){if(e.target===this){if(W&&W.st.length&&W.st[W.st.length-1].id===id)W=null;hide(id)}}});
 var nocb=null;
 function ask(t,msg,yl,fn,no){$("cTitle").textContent=t;$("cMsg").textContent=msg;$("cYes").textContent=yl;yes=fn;nocb=no||null;show("confSheet")}
 $("cYes").onclick=()=>{var f=yes;yes=null;nocb=null;hide("confSheet");if(f)f()};
@@ -533,8 +534,8 @@ const RP=(k,v)=>k==="pv"?undefined:v;
 function askNotes(s,w){var t=w==="o"?"CHICO":w==="a"?"CHICA":"CHICO y CHICA";
   ask("Borrar notas","Se borrarán las notas de «"+s.t+"» ("+t+").","Borrar",()=>{["o","a"].forEach(v=>{if(w==="b"||w===v){var o=vo(s,v);if(o)o.note=""}});save();render()})}
 /* categorías de datos (exportar, importar, escena nueva) */
-const CATS=[["int","Intérpretes"],["ton","Tonos"],["rit","Ritmos"],["not","Notas"],["pul","Por pulir"],["pop","Popurrís"],["chi","Versión CHICA"],["toc","Tocadas"],["liv","En vivo"]];
-const NEWC=["int","ton","rit","not","pul","pop","chi"],ALLC=NEWC.concat(["toc","liv"]);
+const CATS=[["int","Intérpretes"],["ton","Tonos"],["rit","Ritmos"],["not","Notas"],["pul","Por pulir"],["pop","Popurrís"],["chi","Versión CHICA"],["liv","En vivo"]];
+const NEWC=["int","ton","rit","not","pul","pop","chi"],ALLC=NEWC.concat(["liv"]);
 var ec={},csel={},ccb=null,bsc=0;
 function allOn(ids){var o={};ids.forEach(k=>{o[k]=1});return o}
 function catChips(box,ids,obj){box.innerHTML="";CATS.filter(p=>ids.includes(p[0])).forEach(p=>{var on=obj[p[0]],b=el("button","chip"+(on?" on":""),(on?"✓ ":"✗ ")+p[1]);b.onclick=()=>{obj[p[0]]=on?0:1;catChips(box,ids,obj)};box.appendChild(b)})}
@@ -677,8 +678,8 @@ function bkData(){return noCh(()=>{var scs=bt==="all"?S.sc:[S.sc[bsc]];if(bt==="
   return JSON.stringify({app:"YF LiveList",v:3,type:bt,at:Date.now(),cats:Object.keys(ec).filter(k=>ec[k]),data:d},RP)})}
 function bkName(ext){return"YF-LiveList-"+(bt==="all"?"todo":norm(S.sc[bsc].name).replace(/[^a-z0-9]+/g,"-"))+"-"+new Date().toISOString().slice(0,10)+"."+ext}
 function dlFile(txt,nm,mime){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:mime}));a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}
-async function shareTxt(txt,nm,msg){busy(1,msg);var f=null,done=false;try{f=new File([txt],nm,{type:"text/plain"})}catch(e){}
-  dlFile(txt,nm,"text/plain");await new Promise(r=>setTimeout(r,1300));
+async function shareTxt(txt,nm,msg,mime){mime=mime||"text/plain";busy(1,msg);var f=null,done=false;try{f=new File([txt],nm,{type:mime})}catch(e){}
+  dlFile(txt,nm,mime);await new Promise(r=>setTimeout(r,1300));
   try{if(f&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:nm});done=true}}catch(e){done=!!(e&&e.name==="AbortError")}
   busy(0);if(!done)ask("Archivo descargado","El archivo ya está en tu carpeta de Descargas, pero el móvil no abrió el menú de compartir. Puedes enviarlo desde ahí.","Entendido",()=>{})}
 /* importar con asistente */
@@ -703,44 +704,46 @@ $("mmAll").onclick=()=>{W.d.ids=W.d.c.songs.map(s=>s.id);stCoin()};
 $("mmCust").onclick=()=>wGo("pkSheet",stMmPk);
 function stMmPk(){picker("Elige las canciones del archivo",W.d.c.songs,"Continuar",1,ids=>{W.d.ids=ids;stCoin()},W.d.ids)}
 $("mmBack").onclick=()=>wBack();$("mmCancel").onclick=()=>wEnd();
-function stCoin(){var d=W.d;d.pairs=[];d.fresh=[];d.act=null;d.newIds=[];d.keepIds=[];d.rem=[];
+function stCoin(){var d=W.d;d.pairs=[];d.fresh=[];d.newIds=[];d.keepIds=[];d.rem=[];d.ct=null;d.mode="add";
   d.ids.forEach(id=>{var f=d.c.songs.filter(x=>x.id===id)[0];if(!f)return;var best=null,bs=0;
     S.songs.forEach(s=>{var v=similar(s.t,f.t);if(v>bs){bs=v;best=s}});if(best)d.pairs.push({f:f,s:best});else d.fresh.push(f)});
-  if(!d.pairs.length)mgAsk();else wGo("cmSheet",stCm)}
-function stCm(){$("cmMsg").textContent="Hemos detectado coincidencias de canciones ("+W.d.pairs.length+"). ¿Qué desea hacer?";show("cmSheet")}
-$("cm1").onclick=()=>{W.d.act="rep";mgAsk()};
-$("cm2").onclick=()=>{W.d.act="cus";wGo("pkSheet",stNewSel)};
-$("cmBack").onclick=()=>wBack();$("cmCancel").onclick=()=>wEnd();
-function pairSongs(l){return l.map(p=>{p.f._m=p.s.t;return p.f})}
-function stNewSel(){var d=W.d;picker("Selecciona cuáles canciones son nuevas",pairSongs(d.pairs),"Continuar",0,ids=>{d.newIds=ids;stKeep()},d.newIds)}
-function stKeep(){var d=W.d;d.rest=d.pairs.filter(p=>!d.newIds.includes(p.f.id));d.rem=d.rest;
-  if(!d.rest.length){mgAsk();return}
-  wGo("pkSheet",()=>picker("¿Qué canciones NO quieres modificar?",pairSongs(d.rest),"Continuar",0,ids=>{d.keepIds=ids;stMc()},d.keepIds))}
-function stMc(){var d=W.d;d.rem=d.rest.filter(p=>!d.keepIds.includes(p.f.id));
-  if(!d.rem.length){mgAsk();return}
-  wGo("catSheet",()=>catSheet("¿Qué datos quieres combinar?",imp.ids.filter(k=>k!=="pop"&&k!=="liv"),"Continuar",ct=>{d.ct=ct;mgAsk()},d.ct))}
-function mgAsk(){var d=W.d,n=d.fresh.length,t;
-  if(d.act==="rep")t="Se añadirán "+n+" canción(es) nuevas y se reemplazará la información de "+d.pairs.length+" canción(es) que ya tienes.";
-  else if(d.act==="cus")t="Se añadirán "+(n+d.newIds.length)+" canción(es) como nuevas, se combinarán "+d.rem.length+" y "+d.keepIds.length+" no se modificarán.";
-  else t="Se añadirán "+n+" canción(es) nuevas a la escena.";
-  ask("Aplicar importación",t+" Antes se guarda una copia automática.","Aplicar",()=>{var dd=W.d;wOver(()=>mgApply(dd))})}
-function mgTake(s,f,ct){["o","a"].forEach(v=>{if(v==="a"&&!ct.chi)return;var b=vo(f,v);if(!b)return;var t=vo(s,v);if(!t){s.alt={k:[],r:[],ip:[],note:"",p:false};t=s.alt}
-  if(ct.ton)t.k=b.k.map(x=>({n:x.n,m:x.m}));if(ct.rit)t.r=b.r.slice();if(ct.int)t.ip=b.ip.slice();if(ct.not)t.note=b.note;if(ct.pul)t.p=!!b.p});
-  if(ct.rit||ct.int){s.fi=s.fi||{};s.fi.r=1;s.fi.ip=1}}
+  if(!d.pairs.length)mgAsk();else wGo("pkSheet",stNewSel)}
+function stNewSel(){var d=W.d;picker("Selecciona cuáles canciones son nuevas",d.pairs.map(p=>{p.f._m=p.s.t;return p.f}),"Continuar",0,ids=>{d.newIds=ids;stKeep()},d.newIds)}
+function stKeep(){var d=W.d;d.rest=d.pairs.filter(p=>!d.newIds.includes(p.f.id));d.rem=d.rest;if(!d.rest.length){mgAsk();return}
+  wGo("pkSheet",()=>picker("¿Qué canciones del repertorio de la escena actual «"+S.sc[S.cs].name+"» no quieres modificar?",
+    d.rest.map(p=>({id:p.s.id,t:p.s.t,r:p.s.r,k:p.s.k,ip:p.s.ip,ch:p.s.ch,eu:p.s.eu,_m:p.f.t})),"Continuar",0,ids=>{d.keepIds=ids;stMc()},d.keepIds))}
+function stMc(){var d=W.d;d.rem=d.rest.filter(p=>!d.keepIds.includes(p.s.id));if(!d.rem.length){mgAsk();return}wGo("catSheet",stMcCat)}
+function stMcCat(){var d=W.d;catSheet("De las canciones restantes (las del archivo importado), ¿qué datos quieres?",imp.ids.filter(k=>k!=="pop"&&k!=="liv"),"Continuar",ct=>{d.ct=ct;mgAsk()},d.ct);
+  var sg=el("div","seg");sg.style.width="100%";
+  [["add","Añadir a lo que hay"],["rep","Reemplazar lo que hay"]].forEach(p=>{var b=el("button",d.mode===p[0]?"on":"",p[1]);
+    b.onclick=()=>{d.mode=p[0];[].forEach.call(sg.children,x=>{x.className=""});b.className="on"};sg.appendChild(b)});
+  $("catX").appendChild(sg)}
+function mgAsk(){var d=W.d,n=d.fresh.length+d.newIds.length,t="Se añadirán "+n+" canción(es) nuevas";
+  if(d.rem.length)t+=", se "+(d.mode==="rep"?"reemplazarán":"combinarán")+" los datos de "+d.rem.length;
+  if(d.keepIds.length)t+=" y "+d.keepIds.length+" no se modificarán";
+  ask("Aplicar importación",t+". Antes se guarda una copia automática.","Aplicar",()=>{var dd=W.d;wOver(()=>mgApply(dd))})}
+function mgTake(s,f,ct,mode){["o","a"].forEach(v=>{if(v==="a"&&!ct.chi)return;var b=vo(f,v);if(!b)return;var t=vo(s,v);if(!t){s.alt={k:[],r:[],ip:[],note:"",p:false};t=s.alt}
+  if(mode==="rep"){if(ct.ton)t.k=b.k.map(x=>({n:x.n,m:x.m}));if(ct.rit)t.r=b.r.slice();if(ct.int)t.ip=b.ip.slice();if(ct.not)t.note=b.note;if(ct.pul)t.p=!!b.p}
+  else{if(ct.ton)b.k.forEach(x=>{if(!t.k.some(y=>y.n===x.n&&!!y.m===!!x.m))t.k.push({n:x.n,m:!!x.m})});
+    if(ct.rit)b.r.forEach(x=>{if(!t.r.includes(x))t.r.push(x)});if(ct.int)b.ip.forEach(x=>{if(!t.ip.includes(x))t.ip.push(x)});
+    if(ct.not&&b.note){var have=(t.note||"").split("\n").map(x=>x.trim()),add=b.note.split("\n").filter(l=>l.trim()&&!have.includes(l.trim()));if(add.length)t.note=(t.note?t.note+"\n":"")+add.join("\n")}
+    if(ct.pul&&b.p)t.p=true}});
+  s.fi=s.fi||{};if(s.r.length||(s.alt&&s.alt.r.length))s.fi.r=1;if(s.ip.length||(s.alt&&s.alt.ip.length))s.fi.ip=1}
 function mgApply(d){doSave("Antes de importar");var ALL=allOn(NEWC);
   d.fresh.forEach(f=>S.songs.push(cut(f,ALL,false)));
-  d.pairs.forEach(p=>{if(d.act==="rep")mgTake(p.s,p.f,ALL);
-    else if(d.act==="cus"){if(d.newIds.includes(p.f.id))S.songs.push(cut(p.f,ALL,false));else if(!d.keepIds.includes(p.f.id))mgTake(p.s,p.f,d.ct||{})}});
-  S.pop=S.pop;syncIps();save();render()}
+  d.newIds.forEach(id=>{var p=d.pairs.find(x=>x.f.id===id);if(p)S.songs.push(cut(p.f,ALL,false))});
+  d.rem.forEach(p=>mgTake(p.s,p.f,d.ct||{},d.mode));
+  syncIps();save();render()}
 /* EN VIVO */
-var LE=0,lvTmp=[],lqPos=0,smTxt="";
+var LE=0,lvTmp=[],lqPos=0,lqSel=[],smD=null,smTxt="";
 function LV(){var c=S.sc[S.cs];return c.live||(c.live=[])}
+function firstUnplayed(a){var i=a.findIndex(x=>{var s=byId(x);return s&&!s.played});return i<0?a.length:i}
 function renderLive(l){
   var L=LV().filter(id=>byId(id)),bar=el("div","row2");
-  [["Elegir canciones",openLv],["+ Añadir canción",openLq],[LE?"Listo":"Modificar",()=>{LE=!LE;render()}],["RESUMEN DE CONCIERTO",openSum]].forEach(p=>{var b=el("button","btn"+(p[0]==="Listo"?" on":""),p[0]);b.onclick=p[1];bar.appendChild(b)});
+  [["Elegir canciones",openLv],["+ Añadir canciones",openLq],["Modificar",()=>{LE=!LE;render()}],["RESUMEN DE CONCIERTO",openSum]].forEach(p=>{var b=el("button","btn"+(p[0]==="Modificar"&&LE?" on":""),p[0]);b.onclick=p[1];bar.appendChild(b)});
   l.appendChild(bar);
   if(!L.length)l.appendChild(el("div","empty","Aún no hay canciones en EN VIVO. Pulsa «Elegir canciones» y tócalas en el orden en que las vais a tocar."));
-  var u=el("ul");u.style.marginTop="10px";
+  var u=el("ul");u.style.marginTop="10px";if(LE)u.style.paddingBottom="84px";
   L.forEach((id,j)=>{var s=byId(id),li=el("li",s.played?"done":""),top=el("div","top2"),m=el("button","main");
     m.appendChild(el("span","box"));var w=el("span");w.appendChild(el("div","t",(j+1)+". "+s.t));
     var dt=[s.r.join(" + "),kj(s)].filter(Boolean).join("  |  ");if(dt)w.appendChild(el("div","sub",dt));m.appendChild(w);
@@ -749,10 +752,15 @@ function renderLive(l){
     if(hasChica(s)||s.ver==="a"){var vb=el("button","vb "+(s.ver==="a"?"va":"vo"));vb.innerHTML='<i class="sw"></i>';vb.setAttribute("aria-label","Cambiar de versión");
       vb.onclick=()=>{delete s.pv;swapVer(s,s.ver==="a"?"o":"a");save();render()};top.appendChild(vb)}
     li.appendChild(top);
-    if(LE){var ac=el("div","acts");[["▲",-1],["▼",1],["✕",0]].forEach(p=>{var b=el("button","",p[0]);
-      b.onclick=()=>{var a=LV(),i=a.indexOf(id);if(p[1]===0)a.splice(i,1);else{var k=i+p[1];if(k<0||k>=a.length)return;a[i]=a[k];a[k]=id}save();render()};ac.appendChild(b)});li.appendChild(ac)}
+    if(LE){var ac=el("div","acts");[["▲",-1],["▼",1],["⤒",2],["✕",0]].forEach(p=>{var b=el("button","",p[0]);
+      b.setAttribute("aria-label",p[1]===2?"Subir a siguiente":p[1]===0?"Quitar de EN VIVO":p[1]<0?"Subir":"Bajar");
+      b.onclick=()=>{var a=LV(),i=a.indexOf(id);
+        if(p[1]===0){ask(s.t,"¿Quieres quitar «"+s.t+"» de la lista de EN VIVO? La canción sigue en el Repertorio.","Quitar",()=>{var a2=LV(),k=a2.indexOf(id);if(k>-1)a2.splice(k,1);save();render()});return}
+        if(p[1]===2){a.splice(i,1);a.splice(firstUnplayed(a),0,id);save();render();return}
+        var k=i+p[1];if(k<0||k>=a.length)return;a[i]=a[k];a[k]=id;save();render()};ac.appendChild(b)});li.appendChild(ac)}
     u.appendChild(li)});
   l.appendChild(u)}
+$("lvDone").onclick=()=>{LE=0;render()};
 function livePick(s){var tg=[s.r.join(" · "),kj(s)].filter(Boolean).join("  |  "),w=el("span");w.appendChild(el("div","",s.t));if(tg)w.appendChild(el("small","",tg));return w}
 function openLv(){lvTmp=LV().filter(id=>byId(id));$("lvQ").value="";drawLv();show("lvSheet")}
 function drawLv(){var q=norm($("lvQ").value.trim()),b=$("lvList");b.innerHTML="";
@@ -760,32 +768,72 @@ function drawLv(){var q=norm($("lvQ").value.trim()),b=$("lvList");b.innerHTML=""
     r.appendChild(livePick(s));if(j>-1)r.appendChild(el("i","ord",j+1));r.onclick=()=>{if(j>-1)lvTmp.splice(j,1);else lvTmp.push(s.id);drawLv()};b.appendChild(r)});
   if(!b.children.length)b.appendChild(el("p","","Sin resultados."))}
 $("lvQ").oninput=drawLv;$("lvCancel").onclick=()=>hide("lvSheet");$("lvSave").onclick=()=>{S.sc[S.cs].live=lvTmp.slice();save();hide("lvSheet")};
-function openLq(){$("lqQ").value="";lqPos=0;drawLq();show("lqSheet");setTimeout(()=>$("lqQ").focus(),250)}
+/* añadir varias canciones a EN VIVO */
+function openLq(){$("lqQ").value="";lqPos=0;lqSel=[];drawLq();show("lqSheet");setTimeout(()=>$("lqQ").focus(),250)}
 function drawLq(){[].forEach.call($("lqSeg").children,b=>{b.className=(+b.dataset.p===lqPos)?"on":""});
-  var q=norm($("lqQ").value.trim()),b=$("lqList"),n=0;b.innerHTML="";
-  S.songs.slice().sort((a,c)=>CO.compare(a.t,c.t)).forEach(s=>{if(n>=12||(q&&!pm(s,q)))return;n++;var r=el("button","pick");
-    r.appendChild(livePick(s));if(LV().includes(s.id))r.appendChild(el("i","ord","en lista"));r.onclick=()=>{liveAdd(s.id);hide("lqSheet")};b.appendChild(r)});
-  if(!b.children.length)b.appendChild(el("p","","Sin resultados."))}
-function liveAdd(id){var a=LV(),i=a.indexOf(id);if(i>-1)a.splice(i,1);var pos=a.length;
-  if(!lqPos){pos=a.findIndex(x=>{var s=byId(x);return s&&!s.played});if(pos<0)pos=a.length}
-  a.splice(pos,0,id);save()}
+  var q=norm($("lqQ").value.trim()),b=$("lqList"),L=LV().filter(id=>byId(id));b.innerHTML="";
+  var inl=L.map((id,i)=>({s:byId(id),n:i+1})).filter(x=>pm(x.s,q));
+  if(inl.length){b.appendChild(el("h3","","Ya en la lista ("+inl.length+")"));
+    inl.forEach(x=>{var r=el("div","pick dis");r.appendChild(livePick(x.s));r.appendChild(el("i","ord",x.n));b.appendChild(r)})}
+  var rest=S.songs.filter(s=>!L.includes(s.id)&&pm(s,q)).sort((a,c)=>CO.compare(a.t,c.t));
+  b.appendChild(el("h3","","Añadir ("+rest.length+")"));
+  rest.forEach(s=>{var j=lqSel.indexOf(s.id),r=el("button","pick"+(j>-1?" on":""));r.appendChild(livePick(s));if(j>-1)r.appendChild(el("i","ord",j+1));
+    r.onclick=()=>{if(j>-1)lqSel.splice(j,1);else lqSel.push(s.id);drawLq()};b.appendChild(r)});
+  if(!rest.length&&!inl.length)b.appendChild(el("p","","Sin resultados."));
+  $("lqOk").textContent="Añadir ("+lqSel.length+")"}
 [].forEach.call($("lqSeg").children,b=>{b.onclick=()=>{lqPos=+b.dataset.p;drawLq()}});
 $("lqQ").oninput=drawLq;$("lqClose").onclick=()=>hide("lqSheet");
-/* resumen de concierto */
-function sumText(){var c=S.sc[S.cs],L=LV(),pl=S.songs.filter(s=>s.played);
+$("lqOk").onclick=()=>{if(!lqSel.length)return;var a=LV(),pos=lqPos?a.length:firstUnplayed(a);a.splice(pos,0,...lqSel);save();hide("lqSheet")};
+/* resumen de concierto (texto y PDF) */
+function sumData(){var c=S.sc[S.cs],L=LV(),pl=S.songs.filter(s=>s.played);
   pl.sort((a,b)=>{var i=L.indexOf(a.id),j=L.indexOf(b.id);if(i<0&&j<0)return CO.compare(a.t,b.t);if(i<0)return 1;if(j<0)return -1;return i-j});
-  var out=["RESUMEN DE CONCIERTO","Escena: "+c.name,"Fecha: "+new Date().toLocaleString("es"),"Canciones tocadas: "+pl.length,""],n=0;
-  pl.forEach(s=>{var parts=[];[["o","CHICO"],["a","CHICA"]].forEach(p=>{var o=vo(s,p[0]);if(o&&o.note&&o.note.trim())parts.push("  Notas ("+p[1]+"):\n"+o.note.trim().split("\n").map(x=>"    "+x).join("\n"))});
-    if(parts.length){n++;out.push(n+". "+s.t+(s.at?" ("+hora(s.at)+")":""));parts.forEach(x=>out.push(x));out.push("")}});
-  if(!n)out.push("Ninguna de las canciones tocadas tiene notas.");else out.splice(4,0,"Con notas: "+n);
-  return out.join("\n")}
-function smName(){return"YF-LiveList-resumen-"+norm(S.sc[S.cs].name).replace(/[^a-z0-9]+/g,"-")+"-"+new Date().toISOString().slice(0,10)+".txt"}
-function openSum(){smTxt=sumText();$("smPre").textContent=smTxt;$("smCopy").textContent="Copiar al portapapeles";show("smSheet")}
+  var con=[],sin=[];
+  pl.forEach(s=>{var parts=[];[["o","CHICO"],["a","CHICA"]].forEach(p=>{var o=vo(s,p[0]);if(o&&o.note&&o.note.trim())parts.push([p[1],o.note.trim()])});
+    if(parts.length)con.push({t:s.t,parts:parts});else sin.push(s.t)});
+  var d=new Date(),p2=x=>("0"+x).slice(-2);
+  return{scene:c.name,date:p2(d.getDate())+"/"+p2(d.getMonth()+1)+"/"+d.getFullYear(),total:pl.length,con:con,sin:sin}}
+function sumText(d){var o=["RESUMEN DE CONCIERTO","Escena: "+d.scene,"Fecha: "+d.date,"Canciones tocadas: "+d.total+" (con notas: "+d.con.length+", sin notas: "+d.sin.length+")",""];
+  if(d.con.length){o.push("CANCIONES TOCADAS CON NOTAS","");d.con.forEach((x,i)=>{o.push((i+1)+". "+x.t);x.parts.forEach(p=>{o.push("  Notas ("+p[0]+"):");p[1].split("\n").forEach(l=>o.push("    "+l))});o.push("")})}
+  if(d.sin.length){o.push("CANCIONES TOCADAS SIN NOTAS","");d.sin.forEach(t=>o.push("- "+t))}
+  if(!d.total)o.push("Aún no hay canciones marcadas como tocadas.");
+  return o.join("\n")}
+const HW=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+const BW=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+const WA={"“":147,"”":148,"‘":145,"’":146,"—":151,"–":150,"…":133,"•":149,"€":128};
+function pw(s,b,size){var T=b?BW:HW,w=0;for(var ch of s.normalize("NFD").replace(/[\u0300-\u036f]/g,"")){var c=ch.charCodeAt(0);w+=(c>=32&&c<127?T[c-32]:556)}return w*size/1000*1.03}
+function wrapL(s,b,size,max){var out=[],cur="";s.split(" ").forEach(w=>{var t=cur?cur+" "+w:w;if(!cur||pw(t,b,size)<=max)cur=t;else{out.push(cur);cur=w}});out.push(cur);return out}
+function enc(s){var o="";for(var ch of s){var c=ch.charCodeAt(0);if(WA[ch])c=WA[ch];else if(c>255)c=63;o+=String.fromCharCode(c)}return o.replace(/([\\()])/g,"\\$1")}
+function pdfBytes(items){var W0=595,H=842,M=50,pages=[],cur=[],y=H-M;
+  items.forEach(it=>{var size=it.s||11,lh=size*1.4,x=M+(it.x||0),ls=wrapL(it.t,it.b,size,W0-M-x);y-=(it.gap||0);
+    ls.forEach(t=>{if(y-lh<M){pages.push(cur);cur=[];y=H-M}y-=lh;cur.push("BT /"+(it.b?"F2":"F1")+" "+size+" Tf "+x+" "+y.toFixed(1)+" Td ("+enc(t)+") Tj ET")})});
+  pages.push(cur);
+  var objs=[],kids=[];objs[1]="<</Type/Catalog/Pages 2 0 R>>";
+  objs[3]="<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>";objs[4]="<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>";
+  pages.forEach((p,i)=>{var po=5+i*2,co=po+1,st=p.join("\n");kids.push(po+" 0 R");
+    objs[po]="<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Resources<</Font<</F1 3 0 R/F2 4 0 R>>>>/Contents "+co+" 0 R>>";
+    objs[co]="<</Length "+st.length+">>\nstream\n"+st+"\nendstream"});
+  objs[2]="<</Type/Pages/Kids["+kids.join(" ")+"]/Count "+pages.length+">>";
+  var out="%PDF-1.4\n",off=[],i;for(i=1;i<objs.length;i++){off[i]=out.length;out+=i+" 0 obj\n"+objs[i]+"\nendobj\n"}
+  var x0=out.length;out+="xref\n0 "+objs.length+"\n0000000000 65535 f \n";
+  for(i=1;i<objs.length;i++)out+=("0000000000"+off[i]).slice(-10)+" 00000 n \n";
+  out+="trailer\n<</Size "+objs.length+"/Root 1 0 R>>\nstartxref\n"+x0+"\n%%EOF";
+  var u=new Uint8Array(out.length);for(i=0;i<out.length;i++)u[i]=out.charCodeAt(i)&255;return u}
+function sumItems(d){var it=[{t:"RESUMEN DE CONCIERTO",b:1,s:18},{t:"Escena: "+d.scene,gap:8},{t:"Fecha: "+d.date},{t:"Canciones tocadas: "+d.total+" (con notas: "+d.con.length+", sin notas: "+d.sin.length+")"}];
+  if(d.con.length){it.push({t:"CANCIONES TOCADAS CON NOTAS",b:1,s:13,gap:16});
+    d.con.forEach((x,i)=>{it.push({t:(i+1)+". "+x.t,b:1,s:12,gap:10});
+      x.parts.forEach(p=>{it.push({t:"Notas ("+p[0]+"):",b:1,x:14,gap:3});p[1].split("\n").forEach(l=>it.push({t:l.trim()||" ",x:28}))})})}
+  if(d.sin.length){it.push({t:"CANCIONES TOCADAS SIN NOTAS",b:1,s:13,gap:18});d.sin.forEach(t=>it.push({t:"- "+t,b:1,gap:3}))}
+  if(!d.total)it.push({t:"Aún no hay canciones marcadas como tocadas.",gap:12});
+  return it}
+function sumName(ext){var d=new Date(),p=x=>("0"+x).slice(-2),sc=S.sc[S.cs].name.replace(/[\\/:*?"<>|]+/g," ").trim()||"Escena";
+  return"RESUMEN-"+sc+"-"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+"-YF LiveList."+ext}
+function openSum(){smD=sumData();smTxt=sumText(smD);$("smPre").textContent=smTxt;$("smCopy").textContent="Copiar al portapapeles";show("smSheet")}
 $("smCopy").onclick=function(){var b=this,tx=smTxt;function ok2(){b.textContent="Copiado ✓"}
   function fb(){var a=document.createElement("textarea");a.value=tx;document.body.appendChild(a);a.select();try{document.execCommand("copy");ok2()}catch(e){}a.remove()}
   try{navigator.clipboard.writeText(tx).then(ok2,fb)}catch(e){fb()}};
-$("smDl").onclick=()=>dlFile(smTxt,smName(),"text/plain");
-$("smSh").onclick=()=>shareTxt(smTxt,smName(),"Creando resumen…");
+$("smPdf").onclick=()=>dlFile(pdfBytes(sumItems(smD)),sumName("pdf"),"application/pdf");
+$("smSh").onclick=()=>shareTxt(pdfBytes(sumItems(smD)),sumName("pdf"),"Creando resumen…","application/pdf");
+$("smTx").onclick=()=>dlFile(smTxt,sumName("txt"),"text/plain");
 $("smClose").onclick=()=>hide("smSheet");
 /* caja de guardado */
 var sbT=null;
